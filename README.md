@@ -10,14 +10,12 @@ No services. No telemetry. No ads. Zero CPU while idle.**
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-0b7a6b?style=flat-square)](LICENSE)
 ![Windows 11](https://img.shields.io/badge/Windows-11-0078d4?style=flat-square&logo=windows11&logoColor=white)
 ![.NET 10 NativeAOT](https://img.shields.io/badge/.NET%2010-NativeAOT-512bd4?style=flat-square&logo=dotnet&logoColor=white)
-![Size](https://img.shields.io/badge/exe-12%20MB-2ea44f?style=flat-square)
-![Telemetry](https://img.shields.io/badge/telemetry-none-2ea44f?style=flat-square)
 
-[**⬇&nbsp;&nbsp;Download the latest release**](../../releases/latest)
-&nbsp;&nbsp;·&nbsp;&nbsp;[Features](#-features)
-&nbsp;&nbsp;·&nbsp;&nbsp;[Screenshots](#-screenshots)
-&nbsp;&nbsp;·&nbsp;&nbsp;[Install](#-install-update-uninstall)
-&nbsp;&nbsp;·&nbsp;&nbsp;[FAQ](#-faq)
+[**Download the latest release**](../../releases/latest)
+&nbsp;&nbsp;·&nbsp;&nbsp;[Features](#features)
+&nbsp;&nbsp;·&nbsp;&nbsp;[Screenshots](#screenshots)
+&nbsp;&nbsp;·&nbsp;&nbsp;[Install](#install-update-uninstall)
+&nbsp;&nbsp;·&nbsp;&nbsp;[FAQ](#faq)
 
 <br>
 
@@ -30,7 +28,7 @@ No services. No telemetry. No ads. Zero CPU while idle.**
 > trademarks of their owner, used here only to say which laptop this works with. Use at
 > your own risk.
 
-## 💡 Why
+## Why
 
 HONOR PC Manager wraps a handful of useful switches in a heavy bundle of services,
 background processes and ads. **Art14 Helper keeps the switches and drops the rest.** It
@@ -49,13 +47,13 @@ showed these laptops can be controlled without HONOR's software.
 Art14 Helper itself sends no telemetry, needs no account, uses about **11 MB** of memory and
 **no CPU** while idle.
 
-## ✨ Features
+## Features
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### 🔋 Battery
+### Battery
 - **Charge limit:** Home 40–70 %, Office 70–90 %, Travel 95–100 %, or off.
 - **Charge to 100 % once** for a trip: the limit comes back by itself when you unplug.
 - **Battery health** against the design capacity, cycle count, and Windows' battery report.
@@ -63,7 +61,7 @@ Art14 Helper itself sends no telemetry, needs no account, uses about **11 MB** o
 </td>
 <td width="50%" valign="top">
 
-### 🖥️ Display
+### Display
 - **Refresh rate** 120 Hz, 60 Hz, or **Auto** (fastest on the charger, 60 Hz on battery).
 - **Calibrated color modes:** sRGB, Display P3, Adobe RGB or native, built from the panel's
   own factory measurement and loaded into the Intel graphics driver, with matching color
@@ -75,7 +73,7 @@ Art14 Helper itself sends no telemetry, needs no account, uses about **11 MB** o
 <tr>
 <td valign="top">
 
-### ⌨️ Keyboard and keys
+### Keyboard and keys
 - **Keyboard light** Off, Dim, Bright or **Auto**: follows the room through the light sensor,
   smoothly and at no extra battery cost. Plus the idle timeout.
 - **Fn lock:** standard F-keys or media keys.
@@ -86,7 +84,7 @@ Art14 Helper itself sends no telemetry, needs no account, uses about **11 MB** o
 </td>
 <td valign="top">
 
-### 🖱️ Touchpad
+### Touchpad
 - Vibration strength and press sensitivity.
 - **Slide** along the left edge for brightness, the right edge for volume.
 - **Knock twice with a knuckle** for a screenshot, saved to `Pictures\Screenshots` and
@@ -97,7 +95,7 @@ Art14 Helper itself sends no telemetry, needs no account, uses about **11 MB** o
 <tr>
 <td valign="top">
 
-### ☕ Power and keep awake
+### Power and keep awake
 - Windows' **power mode** (efficiency, balanced, performance) one click away.
 - **Keep awake** for 30 min to 4 h or until turned off, like Caffeine, with optional "keep
   the screen on" and "stop apps showing you as away". Survives app updates and restarts,
@@ -108,7 +106,7 @@ Art14 Helper itself sends no telemetry, needs no account, uses about **11 MB** o
 </td>
 <td valign="top">
 
-### 🛠️ Maintenance and sound
+### Maintenance and sound
 - **BIOS and driver updates** from HONOR's own catalog, with every download checked.
 - **Driver backup and restore**, for a clean Windows reinstall.
 - **Settings backup and restore**, and one-click diagnostics for a bug report.
@@ -118,7 +116,7 @@ Art14 Helper itself sends no telemetry, needs no account, uses about **11 MB** o
 </tr>
 </table>
 
-## 📸 Screenshots
+## Screenshots
 
 **Left-click** the tray icon for the settings window: Windows 11 style, light or dark like
 Windows, with a Home page (battery, charge limit, temperatures, fans, battery health,
@@ -162,7 +160,7 @@ didn't just do yourself and can't see otherwise:
 
 Choices you make in the menu or the settings window show no popup: you can see them there.
 
-## 📦 Install, update, uninstall
+## Install, update, uninstall
 
 **Requirements:** HONOR MagicBook Art 14 (2024) with Intel Core Ultra and Windows 11. Other
 HONOR laptops may work in parts; the app only offers what it finds. Administrator rights
@@ -201,10 +199,10 @@ spend money on one. A signature only says who built a file; it says nothing abou
 file does.
 
 **The source is the guarantee here.** If you don't want to trust a downloaded exe, don't:
-read the code and [build it yourself](#-build). It takes one command, and that's what open
+read the code and [build it yourself](#build). It takes one command, and that's what open
 source is for.
 
-## 🔒 Privacy and safety
+## Privacy and safety
 
 - **No telemetry, no accounts, no ads, no self-updater.**
 - The only network use is the Drivers page asking HONOR's update server for new versions:
@@ -214,7 +212,7 @@ source is for.
 - Settings stay in `HKCU\Software\Art14Helper`, the log in `C:\Program Files\Art14Helper\Logs`.
 - The app ships no HONOR files; its icons come from the Windows icon font.
 
-## ❓ FAQ
+## FAQ
 
 <details>
 <summary><b>The screen blinks when I plug in or unplug.</b></summary>
@@ -266,7 +264,7 @@ System > Copy diagnostics, and paste it into your report. It contains versions, 
 app found and the last log lines, never the serial number.
 </details>
 
-## 🧱 Build
+## Build
 
 Needs Windows and the .NET 10 SDK. For the native exe also the Visual Studio C++ build tools
 ("Desktop development with C++"); without them the script builds a trimmed single file,
@@ -284,7 +282,7 @@ that needs no hardware:
 dotnet test --project tests\Art14Helper.Tests\Art14Helper.Tests.csproj
 ```
 
-## 📚 Documentation
+## Documentation
 
 | | |
 |---|---|
@@ -296,7 +294,7 @@ dotnet test --project tests\Art14Helper.Tests\Art14Helper.Tests.csproj
 | [Security policy](SECURITY.md) · [Getting help](SUPPORT.md) | Reporting problems |
 | [Third-party notices](THIRD-PARTY-NOTICES.md) | What the app builds on |
 
-## 📄 License
+## License
 
 Copyright © 2026 The Art14 Helper authors.
 
