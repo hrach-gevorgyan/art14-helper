@@ -4,7 +4,7 @@ All notable changes to Art14 Helper. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] - 2026-11-23
+## [1.0.0] - 2026-11-24
 
 The first release.
 
