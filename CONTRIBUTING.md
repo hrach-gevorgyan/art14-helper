@@ -48,6 +48,23 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the code is organized a
 7. Write commit messages as a short imperative subject ("Keep the charge limit after
    wake"), then what changed and why.
 
+## Releasing
+
+Releases are automatic; nobody builds or uploads an exe by hand.
+
+1. While working, add each user-visible change under `## [Unreleased]` in
+   [CHANGELOG.md](CHANGELOG.md), in the section it belongs to.
+2. To release, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` (and start a new empty
+   `## [Unreleased]` above it), set `<Version>X.Y.Z</Version>` in `Art14Helper.csproj`, and
+   push to `main`. Use [Semantic Versioning](https://semver.org/): fixes raise Z, features Y,
+   breaking changes X.
+3. CI runs the tests, builds the native exe and its self-test, then publishes release
+   `vX.Y.Z` with the exe, its SHA-256 and that changelog section as the notes.
+
+A push whose version is already released rewrites that release's notes from its changelog
+section, so fixing a typo there is enough. A version without a changelog section fails the
+build instead of releasing without notes.
+
 ## Rules the app follows
 
 - **Nothing while idle.** React to Windows' notifications; don't add polling timers.

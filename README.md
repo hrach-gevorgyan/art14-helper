@@ -5,7 +5,7 @@
 # Art14 Helper
 
 **A small, fast replacement for HONOR PC Manager on the HONOR MagicBook Art 14.**<br>
-One 12 MB exe. No services, no telemetry, no ads, no CPU while idle.
+One 10 MB exe. No services, no telemetry, no ads, no CPU while idle.
 
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-0b7a6b?style=flat-square)](LICENSE)
 ![Windows 11](https://img.shields.io/badge/Windows-11-0078d4?style=flat-square)

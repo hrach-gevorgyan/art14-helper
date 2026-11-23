@@ -66,7 +66,7 @@ With it off, the app changes nothing until you choose something.
 - Downloads are checked by HTTPS, SHA-256 and the digital signature of every program file.
 - Settings stay in `HKCU\Software\Art14Helper`, the log in `C:\Program Files\Art14Helper\Logs`.
 - The app ships no HONOR files; its icons come from the Windows icon font.
-- One native exe (NativeAOT, about 12 MB), no .NET runtime to install, no services, about
+- One native exe (NativeAOT, about 10 MB), no .NET runtime to install, no services, about
   11 MB of private memory. It waits for Windows' notifications (keys, power, display,
   devices, light sensor) instead of polling, and runs in Windows 11's efficiency mode while
   no window is open.

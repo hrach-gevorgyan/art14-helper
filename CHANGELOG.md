@@ -4,6 +4,8 @@ All notable changes to Art14 Helper. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
 ## [1.0.0] - 2026-11-24
 
 The first release.
@@ -45,6 +47,6 @@ The first release.
   restore.
 - Settings backup and restore; Copy diagnostics for bug reports.
 - Installer, updater and uninstaller; starts at sign-in without prompts.
-- One native exe of about 12 MB, about 11 MB of memory, no work while idle.
+- One native exe of about 10 MB, about 11 MB of memory, no work while idle.
 
 [1.0.0]: ../../releases/tag/v1.0.0
