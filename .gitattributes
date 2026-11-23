@@ -1,6 +1,10 @@
 # Text is stored with LF in the repository and checked out with CRLF (a Windows project).
 * text=auto eol=crlf
 
+# GitHub's own files stay LF everywhere: Dependabot edits them on GitHub and writes back the
+# line endings it checked out, so CRLF here turned every one-line bump into a whole-file change.
+.github/** text eol=lf
+
 # Binary files: never touched.
 *.ico binary
 *.png binary

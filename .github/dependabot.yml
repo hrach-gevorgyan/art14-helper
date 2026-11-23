@@ -11,3 +11,8 @@ updates:
     groups:
       tests:
         patterns: ["xunit*", "Microsoft.NET.Test.Sdk"]
+    ignore:
+      # The app targets .NET 10 (LTS). System.Drawing.Common 11 belongs to .NET 11: moving to it is
+      # a decision of its own, not a monthly bump. Fixes for 10.0.x still come through.
+      - dependency-name: System.Drawing.Common
+        update-types: ["version-update:semver-major"]
