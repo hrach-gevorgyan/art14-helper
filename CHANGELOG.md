@@ -1,0 +1,50 @@
+# Changelog
+
+All notable changes to Art14 Helper. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
+[Semantic Versioning](https://semver.org/).
+
+## [1.0.0] - 2026-11-23
+
+The first release.
+
+### Battery
+- Charge limit: Home 40–70 %, Office 70–90 %, Travel 95–100 %, or off; put back after
+  wake when the firmware drops it.
+- Charge to 100 % once, until the next unplug.
+- Battery health against the design capacity with cycle count, and Windows' battery report.
+
+### Keyboard and keys
+- Keyboard light Off, Dim, Bright and Auto (from the light sensor, with hysteresis, dwell
+  time and a fade), idle timeout.
+- Fn lock: standard F-keys or media keys.
+- F7 microphone mute for every app with the key's LED, F8 camera privacy switch, F12
+  screen snip, F10 and F11 open a chosen app.
+
+### Touchpad
+- Vibration and press sensitivity; left-edge brightness and right-edge volume gestures.
+- Knuckle double-tap screenshot, saved and copied to the clipboard.
+
+### Display
+- Refresh rate 120 Hz, 60 Hz or Auto by power source.
+- Calibrated sRGB, Display P3 and Adobe RGB color modes from the panel's factory
+  measurement, loaded into the Intel graphics driver, with matching color profiles.
+- Touchscreen on or off.
+
+### Power
+- Windows power mode in one click.
+- Keep awake for a set time or until turned off, optionally keeping the screen on and
+  apps from showing you as away; it carries on after an app update or restart.
+- Remote mode: awake, screen off and running with the lid closed; separate lid switches.
+
+### App
+- Windows 11-style settings window, light and dark, with keyboard navigation; the same
+  choices in the tray menu.
+- Windows 11-style popups, only for keys, automatic changes, failures and unseen results.
+- BIOS and driver updates from HONOR's catalog with checked downloads; driver backup and
+  restore.
+- Settings backup and restore; Copy diagnostics for bug reports.
+- Installer, updater and uninstaller; starts at sign-in without prompts.
+- One native exe of about 12 MB, about 11 MB of memory, no work while idle.
+
+[1.0.0]: ../../releases/tag/v1.0.0

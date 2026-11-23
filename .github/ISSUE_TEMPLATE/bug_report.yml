@@ -1,0 +1,53 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Security problems go through private reporting instead (Security tab > Report a vulnerability).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        1. Plugged in the charger
+        2. Expected the charge limit popup
+        3. Nothing appeared
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Laptop model and BIOS version
+      description: Both are at the top of System > Copy diagnostics.
+      placeholder: HONOR MagicBook MRA-XXX, BIOS 3.05
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Art14 Helper version
+      description: System > Version in the app.
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste the output of System > Copy diagnostics. It contains no serial number or user name.
+      render: text
+    validations:
+      required: false
+  - type: dropdown
+    id: always
+    attributes:
+      label: How often
+      options:
+        - Every time
+        - Sometimes
+        - Once
+    validations:
+      required: true

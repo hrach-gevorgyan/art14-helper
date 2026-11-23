@@ -1,0 +1,52 @@
+# CI: unit tests, then the NativeAOT exe with its self-test, on every push and pull request.
+# Pushing a version tag (v1.0.0) also attaches the exe and its checksum to a GitHub release.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  exe:
+    runs-on: windows-2025
+    permissions:
+      contents: write   # for the release on tags
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v5
+
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Unit tests
+        run: dotnet test --project tests/Art14Helper.Tests/Art14Helper.Tests.csproj -c Release
+
+      - name: Native exe and self-test
+        run: ./build.ps1 -RequireAot -SelfTest
+
+      - name: Checksum
+        run: (Get-FileHash dist/Art14Helper.exe -Algorithm SHA256).Hash + '  Art14Helper.exe' | Out-File dist/Art14Helper.exe.sha256 -Encoding ascii
+
+      - name: Keep the exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: Art14Helper
+          path: dist/Art14Helper.exe*
+          retention-days: 14
+
+      - name: Release
+        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/Art14Helper.exe
+            dist/Art14Helper.exe.sha256
+          generate_release_notes: true

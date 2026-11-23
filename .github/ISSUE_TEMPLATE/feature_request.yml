@@ -1,0 +1,29 @@
+name: Feature request
+description: An idea that would make Art14 Helper better
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The app aims to stay small and quiet: no background polling, no services, no telemetry. Ideas that fit that are the easiest to accept.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What do you want to do that the app doesn't let you do today?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: How would you like it to work?
+    validations:
+      required: true
+  - type: textarea
+    id: other
+    attributes:
+      label: Anything else
+      description: Other laptops it should work on, how HONOR PC Manager does it, screenshots.
+    validations:
+      required: false

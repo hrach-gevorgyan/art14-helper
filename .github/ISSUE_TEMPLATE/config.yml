@@ -1,0 +1,3 @@
+# Issues use the forms (bug report, feature request), so reports come with the laptop
+# model, BIOS version and diagnostics. GitHub links SECURITY.md and SUPPORT.md by itself.
+blank_issues_enabled: false

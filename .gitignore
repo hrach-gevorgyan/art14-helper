@@ -1,0 +1,41 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+/dist/
+/publish/
+*.binlog
+
+# Test results and coverage
+[Tt]est[Rr]esults/
+*.trx
+*.coverage
+coverage*.json
+coverage*.xml
+
+# Visual Studio, Rider, VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+launchSettings.json
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Logs, dumps and temporary files
+*.log
+*.dmp
+*.tmp
+*~
+
+# Operating system files
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+.DS_Store

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Art14 Helper: a tray app for the HONOR MagicBook Art 14. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>Art14Helper</AssemblyName>
+    <RootNamespace>Art14Helper</RootNamespace>
+    <Product>Art14 Helper</Product>
+    <Version>1.0.0</Version>
+    <ApplicationIcon>Assets\Art14Helper.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- One native exe (NativeAOT): no .NET to install, fast start, small memory. The
+       analyzers also run on every build, so nothing slips in that AOT can't compile. -->
+  <PropertyGroup>
+    <PublishAot>true</PublishAot>
+    <OptimizationPreference>Size</OptimizationPreference>
+    <EventSourceSupport>false</EventSourceSupport>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+
+  <!-- A tray app lives on a small heap: one GC thread is plenty, and only English
+       resources ship. -->
+  <PropertyGroup>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- GDI+ draws the icons, the popup and the shapes of the settings window. -->
+    <PackageReference Include="System.Drawing.Common" Version="10.0.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- tests/ is a separate project under this folder. -->
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+    <InternalsVisibleTo Include="Art14Helper.Tests" />
+    <Using Include="System.Drawing" />
+    <Using Include="Art14Helper.Native" />
+    <Using Include="Art14Helper.Ui" />
+  </ItemGroup>
+
+</Project>
