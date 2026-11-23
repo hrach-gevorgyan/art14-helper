@@ -33,5 +33,5 @@ published with credit to you, unless you prefer otherwise.
 - Problems in Windows, the graphics driver, the BIOS or HONOR's servers themselves.
   Report those to Microsoft, Intel or HONOR.
 - Anything that needs administrator rights already.
-- The exe not being code-signed. That is deliberate; see "Why the exe isn't signed" in the
+- The exe not being code-signed. That is deliberate; see the Install section of the
   README. Build from source if you want to be sure what runs.
