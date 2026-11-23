@@ -4,7 +4,7 @@
 # as a build artifact for 14 days.
 #
 # On main, after those pass, the release follows CHANGELOG.md:
-# - a new <Version> in Art14Helper.csproj (no tag vX.Y.Z yet) with a "## [X.Y.Z]" section is
+# - a new <Version> in src/Art14Helper/Art14Helper.csproj (no tag vX.Y.Z yet) with a "## [X.Y.Z]" section is
 #   published as release vX.Y.Z: the tested exe, its SHA-256, and that section as the notes;
 # - a version released already gets its notes rewritten from its section, so a correction in
 #   the changelog reaches the release page too. Its exe and checksum stay as they were.
@@ -59,7 +59,7 @@ jobs:
       - name: Version and changelog
         id: version
         run: |
-          $version = ([xml](Get-Content Art14Helper.csproj)).Project.PropertyGroup.Version |
+          $version = ([xml](Get-Content src/Art14Helper/Art14Helper.csproj)).Project.PropertyGroup.Version |
               Where-Object { $_ } | Select-Object -First 1
           if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "<Version> in Art14Helper.csproj is '$version', not X.Y.Z." }
           $entry = Select-String -Path CHANGELOG.md -Pattern "^## \[$([regex]::Escape($version))\]" -Quiet

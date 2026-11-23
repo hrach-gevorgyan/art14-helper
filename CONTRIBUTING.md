@@ -55,9 +55,9 @@ Releases are automatic; nobody builds or uploads an exe by hand.
 1. While working, add each user-visible change under `## [Unreleased]` in
    [CHANGELOG.md](CHANGELOG.md), in the section it belongs to.
 2. To release, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` (and start a new empty
-   `## [Unreleased]` above it), set `<Version>X.Y.Z</Version>` in `Art14Helper.csproj`, and
-   push to `main`. Use [Semantic Versioning](https://semver.org/): fixes raise Z, features Y,
-   breaking changes X.
+   `## [Unreleased]` above it), set `<Version>X.Y.Z</Version>` in
+   `src/Art14Helper/Art14Helper.csproj`, and push to `main`. Use
+   [Semantic Versioning](https://semver.org/): fixes raise Z, features Y, breaking changes X.
 3. CI runs the tests, builds the native exe and its self-test, then publishes release
    `vX.Y.Z` with the exe, its SHA-256 and that changelog section as the notes.
 

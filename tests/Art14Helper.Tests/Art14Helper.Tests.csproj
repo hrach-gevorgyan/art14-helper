@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Art14Helper.csproj" />
+    <ProjectReference Include="..\..\src\Art14Helper\Art14Helper.csproj" />
   </ItemGroup>
 
 </Project>

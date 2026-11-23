@@ -6,7 +6,7 @@
 param([switch]$RequireAot, [switch]$SelfTest)
 $ErrorActionPreference = 'Stop'
 
-$project = Join-Path $PSScriptRoot 'Art14Helper.csproj'
+$project = Join-Path $PSScriptRoot 'src\Art14Helper\Art14Helper.csproj'
 $dist = Join-Path $PSScriptRoot 'dist'
 $exe = Join-Path $dist 'Art14Helper.exe'
 

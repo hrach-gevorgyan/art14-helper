@@ -14,6 +14,9 @@ How Art14 Helper is built, for anyone reading or changing the code.
 
 ## Folders
 
+The app's code is in `src/Art14Helper/` (with `Art14Helper.csproj`, `Program.cs` and
+`app.manifest`); the folders below are inside it, except `tests/` at the top.
+
 | Folder | What's in it |
 |---|---|
 | `App/` | The running app: `TrayApp` (split by concern into `.Menu`, `.Keys`, `.Power`, `.Icon`), settings storage, popups, status texts, diagnostics, backup, first-run defaults, log |

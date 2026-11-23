@@ -38,9 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- tests/ is a separate project under this folder. -->
-    <Compile Remove="tests\**" />
-    <None Remove="tests\**" />
     <InternalsVisibleTo Include="Art14Helper.Tests" />
     <Using Include="System.Drawing" />
     <Using Include="Art14Helper.Native" />
