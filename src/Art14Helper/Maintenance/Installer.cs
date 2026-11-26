@@ -43,8 +43,9 @@ internal static class Installer
         {
             if (IsInstalledCopy)
             {
-                // Opened again (Start menu, exe) while it runs: show its window instead.
-                if (TrySignalRunningInstance())
+                // With admin rights while a copy without them runs: that copy makes way.
+                // Otherwise, opened again (Start menu, exe) while it runs: show its window instead.
+                if (!TryReplaceLimitedInstance() && TrySignalRunningInstance())
                     return false;
 
                 // Elevated already, or a standard (non-admin) account that can never
@@ -188,10 +189,49 @@ internal static class Installer
     // Asks the running copy to close cleanly (update, uninstall). Not let through from
     // processes without admin rights, so nothing else can close the app this way.
     internal const int WmExit = 0x8003; // WM_APP + 3
+    // Asks a copy running without admin rights to close because one with admin rights is
+    // starting. (WM_APP + 2 is the tray icon's callback.)
+    internal const int WmHandOver = 0x8004; // WM_APP + 4
 
     /// <summary>Asks a running copy to open its settings window. true if one was found.</summary>
     private static bool TrySignalRunningInstance()
         => WindowMessaging.PostToAppWindow(TrayWindowClass, TrayWindowCaption, InstalledExe, WmShowSettings);
+
+    /// <summary>
+    /// The single-instance mutex. With admin rights it's in the global namespace (per session):
+    /// only administrators can create names there, so no other program can take the name first.
+    /// </summary>
+    internal static string SingleInstanceName(bool elevated)
+    {
+        using var self = Process.GetCurrentProcess();
+        return elevated ? @"Global\Art14Helper.SingleInstance." + self.SessionId : "Art14Helper.SingleInstance";
+    }
+
+    /// <summary>
+    /// Started with admin rights while a copy without them runs (reopened after the elevated one
+    /// closed, then started again through the task or "Restart with admin rights"): that copy is
+    /// asked to close and this one carries on. Opening its window instead would leave the app
+    /// without the BIOS until the next sign-in. false when there's no such copy, or when a copy
+    /// with admin rights runs (it holds the global mutex): that one is asked for its window.
+    /// </summary>
+    private static bool TryReplaceLimitedInstance()
+    {
+        if (!Privileged.IsElevated)
+            return false;
+        if (Mutex.TryOpenExisting(SingleInstanceName(elevated: true), out var elevatedCopy))
+        {
+            elevatedCopy.Dispose();
+            return false;
+        }
+        var window = WindowMessaging.FindAppWindow(TrayWindowClass, TrayWindowCaption, InstalledExe);
+        if (window == IntPtr.Zero)
+            return false;
+        Log.Info("A copy without admin rights is running: asking it to close and taking over");
+        WindowMessaging.Post(window, WmHandOver);
+        if (!WindowMessaging.WaitUntilGone(window, 5000))
+            Log.Error("The copy without admin rights didn't close within 5 s; starting anyway");
+        return true;
+    }
 
     private const string UninstallKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Art14Helper";
 
@@ -417,6 +457,20 @@ internal static class Installer
     }
 
     /// <summary>Starts an exe elevated (UAC). false = declined or failed.</summary>
+    /// <summary>
+    /// "Restart with admin rights" from a copy running without them: starts the installed app
+    /// through the sign-in task (no prompt), or through UAC when there's no task. The new copy
+    /// then asks this one to close (<see cref="WmHandOver"/>). false when nothing started.
+    /// </summary>
+    internal static bool StartWithAdminRights()
+        => Autostart.TryStartNow(InstalledExe) || TryStartElevated(InstalledExe, null);
+
+    /// <summary>
+    /// Running as the installed copy without admin rights on an account that could have them:
+    /// the BIOS features are off, and "Restart with admin rights" can fix it.
+    /// </summary>
+    internal static bool IsLimitedMode => !Privileged.IsElevated && IsInstalledCopy && IsAdministratorAccount();
+
     private static bool TryStartElevated(string executable, string? argument, string? value = null)
     {
         var startInfo = new ProcessStartInfo(executable) { UseShellExecute = true, Verb = "runas" };

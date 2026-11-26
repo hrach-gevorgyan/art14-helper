@@ -27,6 +27,8 @@ internal sealed partial class TrayApp : IDisposable
     private Lazy<Task<IReadOnlyList<DriverComponent>>> _drivers = new(ReadDriversInBackground);
     private BiosKeys? _biosKeys;
     private bool _disposed;
+    // Installed copy without admin rights on an admin account: no BIOS. Fixed for the whole run.
+    private readonly bool _limited = Installer.IsLimitedMode;
 
     internal TrayApp()
     {
@@ -36,6 +38,7 @@ internal sealed partial class TrayApp : IDisposable
         WindowMessaging.AcceptFromAnyProcess(_window.Handle, (int)TrayIcon.TaskbarCreated);
         WindowTheme.MenusFollowSystem(_window.Handle);
         _menuTip = new TrackingTooltip(_window.Handle);
+        RunRecord.Started();
         _lightRestore = KeyboardLights.CreateRestore(() => _autoBacklight.Refresh());
         _chargeGuard = ChargeLimits.CreateWakeGuard();
         _micMute = new MicrophoneMute();
@@ -82,6 +85,7 @@ internal sealed partial class TrayApp : IDisposable
         if (_disposed)
             return;
         Step("BIOS key events (the Fn keys won't react)", StartBiosKeys);
+        _ = Task.Run(() => Step("working folder cleanup", () => WorkCleanup.Run()));
 
         _ = Task.Run(() =>
         {
@@ -124,6 +128,11 @@ internal sealed partial class TrayApp : IDisposable
             Step("color mode", ColorModeService.Initialize);
         });
         _ = ReadSensorsAsync();
+        // Limited mode is easy to miss (the app just seems to lack features): say so once,
+        // when the desktop has settled. The fix is at the top of the tray menu.
+        if (_limited)
+            UiThread.Post(() => UiThread.After(3000, () => Popup.Show(PopupIcon.Warning, "Limited mode",
+                "No fans, temperatures or BIOS · fix in the tray menu")));
     }
 
     private void StartBiosKeys()
@@ -159,9 +168,12 @@ internal sealed partial class TrayApp : IDisposable
         return reading;
     }
 
-    /// <summary>Closes the app: removes the icon, stops the services, ends the message loop.</summary>
-    internal void Exit()
+    /// <summary>Closes the app: says why in the log, removes the icon, stops the services, ends the message loop.</summary>
+    internal void Exit(string reason)
     {
+        if (_disposed)
+            return;
+        RunRecord.Closed(reason);
         Dispose();
         UiThread.Quit();
     }

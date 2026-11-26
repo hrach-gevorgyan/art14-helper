@@ -42,14 +42,13 @@ internal static class Program
         // Not the installed copy, or not elevated: install, update or hand over.
         if (!Installer.PrepareTrayLaunch())
             return 0;
-        // With admin rights, in the global namespace (per session): only administrators can create
-        // names there, so no other program can take the name first and keep the app from starting.
-        string name;
-        using (var self = System.Diagnostics.Process.GetCurrentProcess())
-            name = Privileged.IsElevated ? @"Global\Art14Helper.SingleInstance." + self.SessionId : "Art14Helper.SingleInstance";
-        using var single = new Mutex(false, name, out var first);
+        using var single = new Mutex(false, Installer.SingleInstanceName(Privileged.IsElevated), out var first);
         if (!first)
             return 0;
+        if (!Privileged.IsElevated)
+            Log.Info(Installer.IsLimitedMode
+                ? "Started without admin rights (limited mode: no fans, temperatures or BIOS features)"
+                : "Started without admin rights");
         using var app = new TrayApp();
         UiThread.Run();
         return 0;

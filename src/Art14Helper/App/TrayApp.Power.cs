@@ -38,8 +38,12 @@ internal sealed partial class TrayApp
         }
         if (message == Installer.WmExit)
         {
-            Log.Info("Closing for the installer");
-            Exit();
+            Exit("the installer is updating or removing the app");
+            return 0;
+        }
+        if (message == Installer.WmHandOver)
+        {
+            Exit("a copy with admin rights takes over");
             return 0;
         }
         switch (message)
@@ -87,7 +91,7 @@ internal sealed partial class TrayApp
             case WindowMessage.QueryEndSession:
                 return 1;
             case WindowMessage.EndSession when wParam != 0:
-                Exit();   // the process ends soon; don't leave a dead icon behind
+                Exit("Windows is signing out, restarting or shutting down");   // the process ends soon; don't leave a dead icon behind
                 return 0;
         }
         return null;

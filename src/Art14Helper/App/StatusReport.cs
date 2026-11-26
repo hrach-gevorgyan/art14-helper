@@ -35,15 +35,18 @@ internal static class StatusReport
             BatteryWatts(), reading?.CpuTemperature, reading?.BatteryTemperature, reading?.Fan1Rpm, reading?.Fan2Rpm);
     }
 
-    internal static string ForTrayTooltip()
+    internal static string ForTrayTooltip(bool limited = false)
     {
         var reading = Fresh();
         var text = Tooltip(LightWord(reading), ChargeWord(reading), BatteryWatts(), reading);
-        if (!KeepAwake.IsOn)
-            return text;
-        text = (RemoteMode.IsOn ? "Remote mode: awake, lid can close" : $"Awake {KeepAwake.Describe()}") + "\n" + text;
+        if (KeepAwake.IsOn)
+            text = (RemoteMode.IsOn ? "Remote mode: awake, lid can close" : $"Awake {KeepAwake.Describe()}") + "\n" + text;
+        if (limited)
+            text = LimitedLine + "\n" + text;   // first: it explains why the rest is short
         return text.Length > TooltipLimit ? text[..TooltipLimit] : text;
     }
+
+    internal const string LimitedLine = "Limited mode: no admin rights";
 
     /// <summary>
     /// The tooltip text: light, charge limit, battery power, temperatures and fans, one per

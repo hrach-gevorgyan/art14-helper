@@ -60,7 +60,7 @@ internal sealed partial class TrayApp
         if (_disposed || (!now && time - _tooltipBuiltAt < TooltipInterval))
             return;
         _tooltipBuiltAt = time;
-        _tray.Tip = StatusReport.ForTrayTooltip();
+        _tray.Tip = StatusReport.ForTrayTooltip(_limited);
     }
 
     /// <summary>Reads temperatures and fans in the background, at most every <see cref="SensorInterval"/> ms.</summary>

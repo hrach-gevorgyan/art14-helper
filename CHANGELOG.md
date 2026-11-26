@@ -9,10 +9,23 @@ All notable changes to Art14 Helper. The format follows
 ### Added
 - ACCESSIBILITY.md: what works with the keyboard, screen readers and other assistive
   technology, the known gaps with workarounds, and how to report a barrier.
+- The log says why the app closed (tray menu, installer, Windows shutting down, a copy with
+  admin rights taking over), and at the next start when a run ended without closing (Task
+  Manager, a crash, power loss).
+- Limited mode is no longer silent: without admin rights, a popup and the tooltip say so,
+  and **Restart with admin rights** at the top of the tray menu fixes it.
+- Leftovers in the working folder (for example a driver download cut short) are removed
+  after a day.
 
 ### Fixed
 - Popups follow Windows' Animation effects switch: with it off, they appear and go without
   sliding or fading.
+- A copy started with admin rights now takes over from one running without them, instead of
+  opening its window and closing, which left the BIOS features off until the next sign-in.
+- If the BIOS interface isn't ready (right after boot or wake), the app looks again a minute
+  later instead of giving up until it restarts.
+- The log can no longer flood the disk: at most 120 lines a minute and 4000 characters a line,
+  on top of the existing 2 MB cap.
 
 ## [1.1.0] - 2026-11-27
 
