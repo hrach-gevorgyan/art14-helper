@@ -15,6 +15,12 @@ internal sealed partial class TrayApp
                 tooltip: "Running without admin rights: fans, temperatures and BIOS features are off. This starts the app again with them.");
             menu.AddSeparator();
         }
+        if (UpdateCheck.Available is { } release)
+        {
+            menu.AddItem($"Version {release.Version.ToString(3)} is out", UpdateCheck.OpenPage,
+                tooltip: "Opens the release page on GitHub. Download the new exe there and run it to update; your settings stay.");
+            menu.AddSeparator();
+        }
         menu.AddItem("Settings", () => ShowSettings(), tooltip: "Opens the settings window (so does a left click on the icon).");
         menu.AddSeparator();
         BuildMenu(menu);

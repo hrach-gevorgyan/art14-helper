@@ -60,9 +60,13 @@ With it off, the app changes nothing until you choose something.
 ## Privacy and safety
 
 - No telemetry, no accounts, no ads, no self-updater.
-- The only network use is the Drivers page asking HONOR's update server for new versions:
-  laptop model, BIOS and driver versions, Windows version and display language. No serial
-  number, no personal data.
+- The Drivers page asks HONOR's update server for new versions: laptop model, BIOS and
+  driver versions, Windows version and display language. No serial number, no personal data.
+- **Tell me about new versions** (Settings > System, off by default): once a week, at start
+  or after wake, the app asks GitHub for its latest release. The request carries only the
+  app's name and version. When a newer one is out you get one popup and an entry at the top
+  of the tray menu that opens the release page; you download and run the new exe yourself.
+- Nothing else goes over the network.
 - Downloads are checked by HTTPS, SHA-256 and the digital signature of every program file.
 - Settings stay in `HKCU\Software\Art14Helper`, the log in `C:\Program Files\Art14Helper\Logs`.
 - The app ships no HONOR files; its icons come from the Windows icon font.

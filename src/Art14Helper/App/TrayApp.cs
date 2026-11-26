@@ -128,6 +128,8 @@ internal sealed partial class TrayApp : IDisposable
             Step("color mode", ColorModeService.Initialize);
         });
         _ = ReadSensorsAsync();
+        // The optional update notice, once startup has settled (it does nothing while off).
+        UiThread.Post(() => UiThread.After(60_000, () => _ = Task.Run(() => UpdateCheck.CheckAndAnnounceAsync())));
         // Limited mode is easy to miss (the app just seems to lack features): say so once,
         // when the desktop has settled. The fix is at the top of the tray menu.
         if (_limited)

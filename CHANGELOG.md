@@ -16,6 +16,10 @@ All notable changes to Art14 Helper. The format follows
   and **Restart with admin rights** at the top of the tray menu fixes it.
 - Leftovers in the working folder (for example a driver download cut short) are removed
   after a day.
+- **Tell me about new versions** (Settings > System, off by default): once a week the app
+  asks GitHub for its latest release, sending only its version, and when a newer one is out
+  says so once and adds an entry to the tray menu that opens the release page. It never
+  downloads anything.
 
 ### Fixed
 - Popups follow Windows' Animation effects switch: with it off, they appear and go without
