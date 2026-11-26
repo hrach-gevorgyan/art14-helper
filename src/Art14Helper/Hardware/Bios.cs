@@ -26,7 +26,16 @@ internal static class Bios
 
     private static readonly Lock Gate = new();
     private static WmiMethod? _method;
-    private static bool _missing;
+
+    /// <summary>
+    /// After the interface wasn't found, how long to wait before looking again. Right after
+    /// boot or wake Windows may not have it ready yet; giving up for good would leave the app
+    /// without fans, temperatures and every BIOS feature until it restarts.
+    /// </summary>
+    internal const long RetryMissingAfterMs = 60_000;
+
+    private static long? _missingSince;   // tick count of the last search that found nothing
+    private static bool _missingLogged;
 
     /// <summary>Builds a command: group, command, then up to six argument bytes.</summary>
     internal static ulong Command(byte group, byte command, params ReadOnlySpan<byte> arguments)
@@ -126,19 +135,33 @@ internal static class Bios
     // Called under Gate.
     private static byte[] Send(ulong command)
     {
-        if (_missing)
-            throw new InvalidOperationException("This laptop has no HONOR BIOS interface.");
+        var now = Environment.TickCount64;
+        if (_method is null && !ShouldSearch(_missingSince, now))
+            throw new InvalidOperationException("The HONOR BIOS interface isn't available.");
         _method ??= WmiMethod.Find(@"\\.\root\wmi", "OemWMIMethod", "OemWMIfun", HonorInstance);
         if (_method is null)
         {
-            _missing = true;
-            Log.Error("HONOR BIOS interface (OemWMIMethod) not found");
-            throw new InvalidOperationException("This laptop has no HONOR BIOS interface.");
+            _missingSince = now;
+            if (!_missingLogged)   // once: on a laptop without it, every minute would fill the log
+            {
+                _missingLogged = true;
+                Log.Error($"HONOR BIOS interface (OemWMIMethod) not found; looking again every {RetryMissingAfterMs / 1000} s when needed");
+            }
+            throw new InvalidOperationException("The HONOR BIOS interface isn't available.");
+        }
+        if (_missingSince is not null)
+        {
+            _missingSince = null;
+            Log.Info("HONOR BIOS interface found");
         }
         var input = new byte[InputLength];
         BitConverter.TryWriteBytes(input, command);
         return _method.Invoke("u8Input", input, "u8Output");
     }
+
+    /// <summary>Whether to look for the interface now: always until a search found nothing, then once a minute.</summary>
+    internal static bool ShouldSearch(long? missingSince, long now)
+        => missingSince is not { } since || now - since >= RetryMissingAfterMs;
 
     // Called under Gate.
     private static void Forget()

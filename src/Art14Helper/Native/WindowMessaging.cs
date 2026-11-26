@@ -20,6 +20,32 @@ internal static unsafe partial class WindowMessaging
         return window != IntPtr.Zero && BelongsTo(window, exe) && PostMessageW(window, message, 0, 0) != 0;
     }
 
+    /// <summary>The top-level window with this class and title, if it belongs to <paramref name="exe"/>; else zero.</summary>
+    internal static IntPtr FindAppWindow(string className, string title, string exe)
+    {
+        var window = FindWindowW(className, title);
+        return window != IntPtr.Zero && BelongsTo(window, exe) ? window : IntPtr.Zero;
+    }
+
+    /// <summary>Posts a message to a window; false when it's gone.</summary>
+    internal static bool Post(IntPtr window, int message) => PostMessageW(window, message, 0, 0) != 0;
+
+    /// <summary>Waits up to <paramref name="milliseconds"/> for a window to close; true when it did.</summary>
+    internal static bool WaitUntilGone(IntPtr window, int milliseconds)
+    {
+        var deadline = Environment.TickCount64 + milliseconds;
+        while (IsWindow(window) != 0)
+        {
+            if (Environment.TickCount64 >= deadline)
+                return false;
+            Thread.Sleep(100);
+        }
+        return true;
+    }
+
+    [LibraryImport(Libraries.User32)]
+    private static partial int IsWindow(IntPtr window);
+
     private static unsafe bool BelongsTo(IntPtr window, string exe)
     {
         if (GetWindowThreadProcessId(window, out var processId) == 0)

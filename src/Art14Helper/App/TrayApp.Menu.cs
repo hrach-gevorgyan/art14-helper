@@ -9,12 +9,18 @@ internal sealed partial class TrayApp
     private void ShowMenu()
     {
         using var menu = new TrayMenu();
+        if (_limited)
+        {
+            menu.AddItem("Restart with admin rights", RestartWithAdminRights,
+                tooltip: "Running without admin rights: fans, temperatures and BIOS features are off. This starts the app again with them.");
+            menu.AddSeparator();
+        }
         menu.AddItem("Settings", () => ShowSettings(), tooltip: "Opens the settings window (so does a left click on the icon).");
         menu.AddSeparator();
         BuildMenu(menu);
         menu.AddSeparator();
         menu.AddItem("Start with Windows", ToggleStartup, @checked: Autostart.IsEnabled);
-        menu.AddItem("Exit", Exit);
+        menu.AddItem("Exit", () => Exit("Exit chosen in the tray menu"));
 
         _openMenu = menu;
         var chosen = menu.Show(_window.Handle);
@@ -33,6 +39,14 @@ internal sealed partial class TrayApp
     /// Safe from any thread.
     /// </summary>
     private void RefreshSettingsSoon() => UiThread.Post(() => _settings?.RebuildSoon());
+
+    // Limited mode's fix: the copy with admin rights that starts asks this one to close.
+    private static void RestartWithAdminRights() => _ = Task.Run(() =>
+    {
+        Log.Info("Restart with admin rights chosen");
+        if (!Installer.StartWithAdminRights())
+            Popup.Show(PopupIcon.Warning, "Still in limited mode", "The app with admin rights didn't start");
+    });
 
     // While the menu is open, WM_MENUSELECT names the highlighted entry.
     private void OnMenuHighlight(nint wParam, nint lParam)
