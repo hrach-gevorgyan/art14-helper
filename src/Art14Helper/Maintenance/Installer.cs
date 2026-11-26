@@ -291,11 +291,20 @@ internal static class Installer
         }
     }
 
-    // Membership in Administrators shows even while UAC runs the app filtered.
-    private static bool IsAdministratorAccount()
+    private const string AdministratorsSid = "S-1-5-32-544";
+
+    /// <summary>
+    /// True for a member of Administrators, elevated or not. While UAC runs the app filtered,
+    /// Administrators is in the token only as a deny-only group, and WindowsIdentity.Groups
+    /// leaves deny-only groups out; the claims list them as denyonlysid. Checking Groups alone
+    /// took every filtered admin for a standard user, so a copy started without admin rights
+    /// never handed over to the elevated task and ran without fans, temperatures or the BIOS.
+    /// </summary>
+    internal static bool IsAdministratorAccount()
     {
         using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-        return identity.Groups?.Any(group => group.Value == "S-1-5-32-544") == true;
+        return identity.Claims.Any(claim => claim.Value == AdministratorsSid
+            && claim.Type is System.Security.Claims.ClaimTypes.GroupSid or System.Security.Claims.ClaimTypes.DenyOnlySid);
     }
 
     /// <summary>

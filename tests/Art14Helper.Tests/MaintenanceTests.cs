@@ -28,6 +28,21 @@ public class MaintenanceTests
     }
 
     [Fact]
+    public void AdministratorAccountIsSeenEvenWhenFiltered()
+    {
+        // whoami lists Administrators both when enabled (elevated) and as "deny only" (filtered by UAC).
+        var whoami = new System.Diagnostics.ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "whoami.exe"), "/groups /fo csv")
+        {
+            RedirectStandardOutput = true,
+            UseShellExecute = false
+        };
+        using var process = System.Diagnostics.Process.Start(whoami)!;
+        var groups = process.StandardOutput.ReadToEnd();
+        process.WaitForExit();
+        Assert.Equal(groups.Contains("S-1-5-32-544", StringComparison.Ordinal), Installer.IsAdministratorAccount());
+    }
+
+    [Fact]
     public void ReadsTheProgramOfAQuotedCommand()
     {
         var task = XDocument.Parse($"<Task xmlns=\"{Task}\"><Actions><Exec><Command>\"C:\\A b\\x.exe\"</Command></Exec></Actions></Task>");
