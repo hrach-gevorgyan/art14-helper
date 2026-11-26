@@ -73,6 +73,10 @@ build instead of releasing without notes.
 - **No network use** except the Drivers page talking to HONOR's update servers and the
   opt-in update notice asking GitHub for the latest release, and never personal data.
 - **No HONOR files** in the repository or the exe.
+- **Every text the user sees goes through `T("…")`** (or `N("…")` when it's translated later
+  through a variable), with `{0}` placeholders instead of joined pieces. Add its line to
+  `src/Art14Helper/Translations/ru.json` and `zh-Hans.json`; `TranslationTests` fails until
+  every table has it. The log and Copy diagnostics stay in English.
 - **Popups only** for keys, automatic changes, failures and results the user can't see.
 
 ## License

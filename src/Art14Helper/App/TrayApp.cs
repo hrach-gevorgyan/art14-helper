@@ -133,8 +133,8 @@ internal sealed partial class TrayApp : IDisposable
         // Limited mode is easy to miss (the app just seems to lack features): say so once,
         // when the desktop has settled. The fix is at the top of the tray menu.
         if (_limited)
-            UiThread.Post(() => UiThread.After(3000, () => Popup.Show(PopupIcon.Warning, "Limited mode",
-                "No fans, temperatures or BIOS · fix in the tray menu")));
+            UiThread.Post(() => UiThread.After(3000, () => Popup.Show(PopupIcon.Warning, T("Limited mode"),
+                T("No fans, temperatures or BIOS · fix in the tray menu"))));
     }
 
     private void StartBiosKeys()

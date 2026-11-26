@@ -237,11 +237,12 @@ internal sealed class CardPart(string? title, IReadOnlyList<RowSpec> rows, float
         if (row.Kind == RowKind.Toggle)
         {
             var toggle = new Rectangle(right - S(40), middle, S(40), S(20));
-            var stateWidth = S(32);
+            // Wide enough for the longer of the two words in the current language (Russian "Выкл.").
+            var stateWidth = Math.Max(S(32), Math.Max(body.Measure(T("On")).Width, body.Measure(T("Off")).Width));
             if (canvas is not null)
             {
                 PaintSwitch(canvas, toggle, row.Checked, row.Enabled);
-                canvas.Text(row.Checked ? "On" : "Off", body, new Rectangle(toggle.Left - stateWidth - S(8), box.Top, stateWidth, box.Height),
+                canvas.Text(row.Checked ? T("On") : T("Off"), body, new Rectangle(toggle.Left - stateWidth - S(8), box.Top, stateWidth, box.Height),
                     ink, TextLayout.Right | TextLayout.Middle);
             }
             right = toggle.Left - stateWidth - S(16);

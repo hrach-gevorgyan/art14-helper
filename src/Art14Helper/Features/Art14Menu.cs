@@ -8,18 +8,18 @@ internal static class Art14Menu
     internal static void BuildFnLock(IMenuBuilder menu)
     {
         var current = AppSettings.FnMode;
-        menu.AddItem("Standard F-keys (F5 = reload)",
+        menu.AddItem(T("Standard F-keys (F5 = reload)"),
             async () => await ApplyFnModeAsync(FnKeyMode.Standard),
             @checked: current == FnKeyMode.Standard,
-            tooltip: "F1-F12 work as F-keys. Hold Fn for volume, brightness and so on.");
-        menu.AddItem("Media keys (F5 = volume)",
+            tooltip: T("F1-F12 work as F-keys. Hold Fn for volume, brightness and so on."));
+        menu.AddItem(T("Media keys (F5 = volume)"),
             async () => await ApplyFnModeAsync(FnKeyMode.Media),
             @checked: current == FnKeyMode.Media,
-            tooltip: "Keys change volume, brightness and so on. Hold Fn for F1-F12.");
+            tooltip: T("Keys change volume, brightness and so on. Hold Fn for F1-F12."));
     }
 
     private static Task ApplyFnModeAsync(FnKeyMode mode)
-        => Privileged.FnMode.ApplyFromMenuAsync(mode, "Could not change the Fn key mode.",
+        => Privileged.FnMode.ApplyFromMenuAsync(mode, T("Could not change the Fn key mode."),
             () => AppSettings.FnMode = mode);
 
     // ---- Spatial audio ----
@@ -27,14 +27,14 @@ internal static class Art14Menu
     internal static void BuildSound(IMenuBuilder menu)
     {
         var spatial = SpatialAudioController.IsSpatial();
-        menu.AddItem("Spatial", async () => await ApplySpatialAsync(true), @checked: spatial == true,
-            tooltip: "Wider, more room-filling sound from the speakers: good for films and games.");
-        menu.AddItem("Stereo", async () => await ApplySpatialAsync(false), @checked: spatial == false,
-            tooltip: "Plain left and right, as recorded: good for music and calls.");
+        menu.AddItem(T("Spatial"), async () => await ApplySpatialAsync(true), @checked: spatial == true,
+            tooltip: T("Wider, more room-filling sound from the speakers: good for films and games."));
+        menu.AddItem(T("Stereo"), async () => await ApplySpatialAsync(false), @checked: spatial == false,
+            tooltip: T("Plain left and right, as recorded: good for music and calls."));
     }
 
     private static Task ApplySpatialAsync(bool spatial)
-        => Privileged.SpatialAudio.ApplyFromMenuAsync(spatial, "Could not change the sound mode.",
+        => Privileged.SpatialAudio.ApplyFromMenuAsync(spatial, T("Could not change the sound mode."),
             () => AppSettings.SpatialAudio = spatial);
 
     // ---- Touchscreen ----
@@ -45,12 +45,12 @@ internal static class Art14Menu
             return;
 
         var off = TouchscreenControl.IsDisabled() == true;
-        menu.AddItem("Touchscreen", async () => await ApplyTouchscreenAsync(TouchscreenControl.IsDisabled() != true), @checked: !off,
-            tooltip: "Turn the touchscreen on or off.", toggle: true);
+        menu.AddItem(T("Touchscreen"), async () => await ApplyTouchscreenAsync(TouchscreenControl.IsDisabled() != true), @checked: !off,
+            tooltip: T("Turn the touchscreen on or off."), toggle: true);
     }
 
     private static Task ApplyTouchscreenAsync(bool off)
-        => Privileged.TouchscreenOff.ApplyFromMenuAsync(off, "Could not change the touchscreen.");
+        => Privileged.TouchscreenOff.ApplyFromMenuAsync(off, T("Could not change the touchscreen."));
 
     // ---- F10 / F11 ----
 
@@ -70,16 +70,16 @@ internal static class Art14Menu
     {
         var current = getAction();
         foreach (var (action, text) in HotkeyActions.Choices)
-            menu.AddItem(text, () => setAction(action), @checked: current == action);
+            menu.AddItem(T(text), () => setAction(action), @checked: current == action);
 
         var command = getCommand();
         var customText = current == HotkeyAction.Custom && !string.IsNullOrEmpty(command)
-            ? $"Program: {Path.GetFileName(command)}"
-            : "Choose a program…";
+            ? T("Program: {0}", Path.GetFileName(command))
+            : T("Choose a program…");
         menu.AddItem(customText, () =>
         {
-            if (CommonDialogs.AskForFile(User32.GetActiveWindow(), save: false, "Program to open",
-                    "Programs (*.exe;*.lnk;*.bat;*.cmd)|*.exe;*.lnk;*.bat;*.cmd|All files (*.*)|*.*") is not { } program)
+            if (CommonDialogs.AskForFile(User32.GetActiveWindow(), save: false, T("Program to open"),
+                    T("Programs (*.exe;*.lnk;*.bat;*.cmd)") + "|*.exe;*.lnk;*.bat;*.cmd|" + T("All files (*.*)") + "|*.*") is not { } program)
                 return;
             setCommand(program);
             setAction(HotkeyAction.Custom);

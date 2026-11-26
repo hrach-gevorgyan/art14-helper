@@ -98,6 +98,23 @@ internal static class FluentTheme
     /// <summary>Windows 11's "Body Strong" (flyout and dialog labels); Segoe UI Semibold on Windows 10.</summary>
     internal static string BodyStrongFamily => _bodyStrongFamily ??= Installed("Segoe UI Variable Text Semibold", StrongFamily);
 
+    // GDI (the windows) links Segoe UI to Windows' Chinese font by itself, so Latin keeps its
+    // shapes and Chinese is consistent. GDI+ (the popup) has no such link and fills missing
+    // characters from different fonts, so one line mixes weights: there, Chinese text uses
+    // Windows' Chinese interface font outright.
+    private const string ChineseFamily = "Microsoft YaHei UI";
+    private static string? _chineseFamily;
+    private static bool Chinese => L10n.Current == AppLanguage.ChineseSimplified;
+
+    /// <summary>The family for GDI+ body text (the popup) in the current language.</summary>
+    internal static string DrawingTextFamily => Chinese ? _chineseFamily ??= Installed(ChineseFamily, TextFamily) : TextFamily;
+
+    /// <summary>The family for GDI+ strong text; with the Chinese font, <see cref="CreateFont"/> makes it bold.</summary>
+    internal static string DrawingStrongFamily => Chinese ? DrawingTextFamily : BodyStrongFamily;
+
+    /// <summary>After the language changed (nothing cached depends on it now; kept for clarity).</summary>
+    internal static void ReloadFonts() => _chineseFamily = null;
+
     private static string Installed(string wanted, string otherwise)
     {
         using var probe = new Font(wanted, 10f);
@@ -105,8 +122,8 @@ internal static class FluentTheme
     }
 
     /// <summary>A GDI+ font sized in pixels at 100%, for drawing that needs alpha (the popup).</summary>
-    internal static Font CreateFont(string family, float pixels, float scale)
-        => new(family, pixels * scale, FontStyle.Regular, GraphicsUnit.Pixel);
+    internal static Font CreateFont(string family, float pixels, float scale, bool strong = false)
+        => new(family, pixels * scale, strong && family == ChineseFamily ? FontStyle.Bold : FontStyle.Regular, GraphicsUnit.Pixel);   // it has no semibold face of its own
 
     internal static GraphicsPath RoundedRect(RectangleF box, float radius)
     {

@@ -8,7 +8,7 @@ namespace Art14Helper;
 internal static class SettingsBackup
 {
     private const string Header = "# Art14 Helper settings";
-    internal const string Filter = "Art14 Helper settings (*.txt)|*.txt";
+    internal static string Filter => T("Art14 Helper settings (*.txt)") + "|*.txt";
 
     /// <summary>Values that describe the hardware's last state or the setup, not a choice.</summary>
     private static bool IsChoice(string name)
@@ -58,7 +58,7 @@ internal static class SettingsBackup
     /// <summary>Asks where to save, then writes the file.</summary>
     internal static void Export()
     {
-        var file = CommonDialogs.AskForFile(User32.GetActiveWindow(), save: true, "Back up settings", Filter,
+        var file = CommonDialogs.AskForFile(User32.GetActiveWindow(), save: true, T("Back up settings"), Filter,
             $"Art14Helper settings {DateTime.Now:yyyy-MM-dd}.txt", "txt");
         if (file is null)
             return;
@@ -76,7 +76,7 @@ internal static class SettingsBackup
     /// <summary>Asks for a backup, stores its choices and applies them to the laptop in the background.</summary>
     internal static void Import()
     {
-        var file = CommonDialogs.AskForFile(User32.GetActiveWindow(), save: false, "Restore settings", Filter);
+        var file = CommonDialogs.AskForFile(User32.GetActiveWindow(), save: false, T("Restore settings"), Filter);
         if (file is null)
             return;
         Dictionary<string, object>? values;
@@ -91,7 +91,7 @@ internal static class SettingsBackup
         }
         if (values is null)
         {
-            CommonDialogs.Message(User32.GetActiveWindow(), "This file isn't an Art14 Helper settings backup.", AppInfo.Name, CommonDialogs.Icon.Error);
+            CommonDialogs.Message(User32.GetActiveWindow(), T("This file isn't an Art14 Helper settings backup."), AppInfo.Name, CommonDialogs.Icon.Error);
             return;
         }
         AppSettings.Store(values);
@@ -105,6 +105,6 @@ internal static class SettingsBackup
     {
         await StoredSettings.ApplyAsync(AdminPrompt.UntilDeclined).ConfigureAwait(false);
         ColorModeService.Restore();
-        Popup.Show(PopupIcon.Done, "Settings restored");
+        Popup.Show(PopupIcon.Done, T("Settings restored"));
     }
 }

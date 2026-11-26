@@ -35,7 +35,7 @@ internal static class Autostart
     internal static void RegisterFor(string exe)
     {
         if (!string.Equals(Path.GetFullPath(exe), Installer.InstalledExe, StringComparison.OrdinalIgnoreCase) || !File.Exists(exe))
-            throw new InvalidOperationException("Start with Windows works for the installed app only. Install it first.");
+            throw new InvalidOperationException(T("Start with Windows works for the installed app only. Install it first."));
 
         // schtasks reads the definition from a file (UTF-16). It goes in the program folder, where
         // only administrators can write, and stays open read-only, without write or delete sharing,
@@ -50,7 +50,7 @@ internal static class Autostart
             {
                 var created = SystemTool.Run("schtasks.exe", "/Create", "/TN", TaskName, "/XML", xmlFile, "/F");
                 if (created.ExitCode != 0)
-                    throw new InvalidOperationException($"Task Scheduler refused the sign-in task: {created.Tail()}");
+                    throw new InvalidOperationException(T("Task Scheduler refused the sign-in task: {0}", created.Tail()));
             }
         }
         finally
@@ -66,7 +66,7 @@ internal static class Autostart
             return;
         var deleted = SystemTool.Run("schtasks.exe", "/Delete", "/TN", TaskName, "/F");
         if (deleted.ExitCode != 0)
-            throw new InvalidOperationException($"Task Scheduler didn't delete the sign-in task: {deleted.Tail()}");
+            throw new InvalidOperationException(T("Task Scheduler didn't delete the sign-in task: {0}", deleted.Tail()));
     }
 
     /// <summary>

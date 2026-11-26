@@ -72,32 +72,33 @@ internal static class ChargeLimits
 /// <summary>The charge limit choices for the tray menu and the settings window.</summary>
 internal static class ChargeLimitMenu
 {
+    // English here, translated where they're shown.
     private static readonly (ChargeLimit Limit, string Text, string Hint)[] Choices =
     [
-        (ChargeLimit.Home, "Home · 40–70%", "Best for a laptop that lives on the charger: the battery stays in its gentlest range."),
-        (ChargeLimit.Office, "Office · 70–90%", "More charge for meetings away from the desk, still easier on the battery."),
-        (ChargeLimit.Travel, "Travel · 95–100%", "Full battery for a day on the road."),
-        (ChargeLimit.Off, "Off · always 100%", "No limit: the battery charges fully every time.")
+        (ChargeLimit.Home, N("Home · 40–70%"), N("Best for a laptop that lives on the charger: the battery stays in its gentlest range.")),
+        (ChargeLimit.Office, N("Office · 70–90%"), N("More charge for meetings away from the desk, still easier on the battery.")),
+        (ChargeLimit.Travel, N("Travel · 95–100%"), N("Full battery for a day on the road.")),
+        (ChargeLimit.Off, N("Off · always 100%"), N("No limit: the battery charges fully every time."))
     ];
 
     internal static void Build(IMenuBuilder menu)
     {
         var current = AppSettings.CurrentCharge;   // unknown (a window this app didn't set): nothing checked
         foreach (var (limit, text, hint) in Choices)
-            menu.AddItem(text, async () => await ChooseAsync(limit), @checked: current == limit, tooltip: hint);
+            menu.AddItem(T(text), async () => await ChooseAsync(limit), @checked: current == limit, tooltip: T(hint));
 
         // Usable only with a limit to come back to; shown either way, so it can be found.
         var once = AppSettings.ChargeOnce;
         var usable = once || AppSettings.ChosenCharge is ChargeLimit.Home or ChargeLimit.Office or ChargeLimit.Travel;
         menu.AddSeparator();
-        menu.AddItem("Charge to 100% once", async () => await ToggleChargeOnceAsync(), @checked: once, toggle: true, enabled: usable,
+        menu.AddItem(T("Charge to 100% once"), async () => await ToggleChargeOnceAsync(), @checked: once, toggle: true, enabled: usable,
             tooltip: usable
-                ? "A full battery this one time, for a trip. The limit comes back by itself when you unplug."
-                : "Pick Home, Office or Travel first: this charges fully once, then goes back to that limit.");
+                ? T("A full battery this one time, for a trip. The limit comes back by itself when you unplug.")
+                : T("Pick Home, Office or Travel first: this charges fully once, then goes back to that limit."));
     }
 
     private static Task ChooseAsync(ChargeLimit limit)
-        => Privileged.ChargeLimit.ApplyFromMenuAsync(limit, "The charge limit wasn't changed.", () =>
+        => Privileged.ChargeLimit.ApplyFromMenuAsync(limit, T("The charge limit wasn't changed."), () =>
         {
             AppSettings.CurrentCharge = limit;
             AppSettings.ChosenCharge = limit;   // what the wake check restores
@@ -110,7 +111,7 @@ internal static class ChargeLimitMenu
         if (AppSettings.ChargeOnce)
             return ChooseAsync(AppSettings.ChosenCharge ?? ChargeLimit.Home);
         // No popup: the switch just flipped shows it, and the tooltip and Home page say "100% once".
-        return Privileged.ChargeLimit.ApplyFromMenuAsync(ChargeLimit.Off, "Charging to 100% couldn't be turned on.",
+        return Privileged.ChargeLimit.ApplyFromMenuAsync(ChargeLimit.Off, T("Charging to 100% couldn't be turned on."),
             () =>
             {
                 AppSettings.ChargeOnce = true;

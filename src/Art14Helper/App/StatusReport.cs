@@ -11,7 +11,8 @@ internal sealed record StatusInfo(
     int? CpuTemperature,
     int? BatteryTemperature,
     int? Fan1Rpm,
-    int? Fan2Rpm);
+    int? Fan2Rpm,
+    bool ChargeLimitOff);
 
 /// <summary>
 /// The current state in words, for the tray tooltip and the Home page. Uses the last
@@ -29,24 +30,32 @@ internal static class StatusReport
     internal static StatusInfo ForHomePage()
     {
         var reading = Fresh();
+        var charge = ChargeWord(reading);
         return new StatusInfo(
-            LightWord(reading) is { } light ? char.ToUpperInvariant(light[0]) + light[1..] : "—",
-            ChargeWord(reading) is { } charge ? char.ToUpperInvariant(charge[0]) + charge[1..] : "—",
-            BatteryWatts(), reading?.CpuTemperature, reading?.BatteryTemperature, reading?.Fan1Rpm, reading?.Fan2Rpm);
+            Capitalized(Shown(LightWord(reading))) ?? "—",
+            Capitalized(Shown(charge)) ?? "—",
+            BatteryWatts(), reading?.CpuTemperature, reading?.BatteryTemperature, reading?.Fan1Rpm, reading?.Fan2Rpm,
+            charge == "off");
     }
+
+    // The words below are English keys ("off", "dim", "100% once"); a range like "40–70%" has no
+    // translation and stays as it is.
+    private static string? Shown(string? word) => word is null ? null : T(word);
+
+    private static string? Capitalized(string? text) => string.IsNullOrEmpty(text) ? text : char.ToUpper(text[0], CultureInfo.CurrentCulture) + text[1..];
 
     internal static string ForTrayTooltip(bool limited = false)
     {
         var reading = Fresh();
-        var text = Tooltip(LightWord(reading), ChargeWord(reading), BatteryWatts(), reading);
+        var text = Tooltip(Shown(LightWord(reading)), Shown(ChargeWord(reading)), BatteryWatts(), reading);
         if (KeepAwake.IsOn)
-            text = (RemoteMode.IsOn ? "Remote mode: awake, lid can close" : $"Awake {KeepAwake.Describe()}") + "\n" + text;
+            text = (RemoteMode.IsOn ? T("Remote mode: awake, lid can close") : T("Awake {0}", KeepAwake.Describe())) + "\n" + text;
         if (limited)
             text = LimitedLine + "\n" + text;   // first: it explains why the rest is short
         return text.Length > TooltipLimit ? text[..TooltipLimit] : text;
     }
 
-    internal const string LimitedLine = "Limited mode: no admin rights";
+    internal static string LimitedLine => T("Limited mode: no admin rights");
 
     /// <summary>
     /// The tooltip text: light, charge limit, battery power, temperatures and fans, one per
@@ -55,14 +64,14 @@ internal static class StatusReport
     internal static string Tooltip(string? light, string? charge, double? watts, SensorReading? reading)
     {
         var text = new StringBuilder(TooltipLimit + 40);
-        text.Append("Keyboard light: ").Append(light ?? "?");
-        text.Append("\nCharge limit: ").Append(charge ?? "?");
+        text.Append(T("Keyboard light: {0}", light ?? "?"));
+        text.Append('\n').Append(T("Charge limit: {0}", charge ?? "?"));
         if (watts is { } power)
-            text.Append("\nBattery: ").Append(PowerText(power));   // the battery's own flow, not the laptop's draw
+            text.Append('\n').Append(T("Battery: {0}", PowerText(power)));   // the battery's own flow, not the laptop's draw
         if (reading is not null)
         {
             if (reading.CpuTemperature is not null || reading.BatteryTemperature is not null)
-                text.Append("\nCPU ").Append(Degrees(reading.CpuTemperature)).Append(", battery ").Append(Degrees(reading.BatteryTemperature));
+                text.Append('\n').Append(T("CPU {0}, battery {1}", Degrees(reading.CpuTemperature), Degrees(reading.BatteryTemperature)));
             if (reading.Fan1Rpm is not null || reading.Fan2Rpm is not null)
                 AppendFans(text, reading);
         }
@@ -73,7 +82,7 @@ internal static class StatusReport
 
     /// <summary>"+12.3 W" charging, "-7.0 W" draining, or "idle" when the charge limit holds it at 0.</summary>
     internal static string PowerText(double watts)
-        => Math.Abs(watts) < 0.05 ? "0 W, idle" : (watts > 0 ? "+" : "") + watts.ToString("0.0", CultureInfo.CurrentCulture) + " W";
+        => Math.Abs(watts) < 0.05 ? T("0 W, idle") : (watts > 0 ? "+" : "") + T("{0:0.0} W", watts);
 
     private static string Degrees(int? celsius) => celsius is { } value ? $"{value}°C" : "?";
 
@@ -85,8 +94,8 @@ internal static class StatusReport
     private static void AppendFans(StringBuilder text, SensorReading reading)
     {
         static string Fan(int? rpm, int? target) => (rpm?.ToString(CultureInfo.InvariantCulture) ?? "?") + (target is > 0 ? $"→{target}" : "");
-        var withTargets = $"\nFans: {Fan(reading.Fan1Rpm, reading.Fan1TargetRpm)} / {Fan(reading.Fan2Rpm, reading.Fan2TargetRpm)} RPM";
-        var plain = $"\nFans: {Fan(reading.Fan1Rpm, null)} / {Fan(reading.Fan2Rpm, null)} RPM";
+        var withTargets = "\n" + T("Fans: {0} / {1} RPM", Fan(reading.Fan1Rpm, reading.Fan1TargetRpm), Fan(reading.Fan2Rpm, reading.Fan2TargetRpm));
+        var plain = "\n" + T("Fans: {0} / {1} RPM", Fan(reading.Fan1Rpm, null), Fan(reading.Fan2Rpm, null));
         var hasTargets = reading.Fan1TargetRpm is > 0 || reading.Fan2TargetRpm is > 0;
         foreach (var line in hasTargets ? new[] { withTargets, plain } : [plain])
         {
@@ -102,10 +111,10 @@ internal static class StatusReport
 
     private static string? LightWord(SensorReading? reading) => (reading?.Light ?? AppSettings.CurrentLight) switch
     {
-        KeyboardLight.Off => "off",
-        KeyboardLight.Dim => "dim",
-        KeyboardLight.Bright => "bright",
-        KeyboardLight.Auto => "auto",
+        KeyboardLight.Off => N("off"),
+        KeyboardLight.Dim => N("dim"),
+        KeyboardLight.Bright => N("bright"),
+        KeyboardLight.Auto => N("auto"),
         _ => null
     };
 
@@ -113,13 +122,13 @@ internal static class StatusReport
     internal static string? ChargeWord(SensorReading? reading)
     {
         if (AppSettings.ChargeOnce)
-            return "100% once";
+            return N("100% once");
         if (reading is { ChargeStart: { } start, ChargeEnd: { } end })
-            return ChargeLimits.FromRange(start, end) == ChargeLimit.Off ? "off" : $"{start}–{end}%";
+            return ChargeLimits.FromRange(start, end) == ChargeLimit.Off ? N("off") : $"{start}–{end}%";
         if (AppSettings.CurrentCharge is not { } limit)
             return null;
         if (limit == ChargeLimit.Off)
-            return "off";
+            return N("off");
         var (low, high) = ChargeLimits.Range(limit);
         return $"{low}–{high}%";
     }

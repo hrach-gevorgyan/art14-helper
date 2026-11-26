@@ -137,12 +137,12 @@ internal sealed class DriverUpdateService
 
     /// <summary>The save dialog; null when cancelled.</summary>
     private static string? AskWhereToSave(string name, string extension)
-        => CommonDialogs.AskForFile(User32.GetActiveWindow(), save: true, "Save driver", $"Driver file (*{extension})|*{extension}",
+        => CommonDialogs.AskForFile(User32.GetActiveWindow(), save: true, T("Save driver"), T("Driver file (*{0})", extension) + $"|*{extension}",
             Path.ChangeExtension(name, extension), extension[1..]);
 
     private static bool ConfirmReplace(string target, string alreadyConfirmed)
         => string.Equals(target, alreadyConfirmed, StringComparison.OrdinalIgnoreCase)
            || !File.Exists(target)
-           || CommonDialogs.Message(User32.GetActiveWindow(), $"The file {Path.GetFileName(target)} already exists. Replace it?", "Save driver",
+           || CommonDialogs.Message(User32.GetActiveWindow(), T("The file {0} already exists. Replace it?", Path.GetFileName(target)), T("Save driver"),
                CommonDialogs.Icon.Warning, yesNo: true);
 }

@@ -19,7 +19,7 @@ internal static class SystemTool
         var start = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, tool)) { CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
         arguments.ToList().ForEach(start.ArgumentList.Add);
 
-        using var process = Process.Start(start) ?? throw new InvalidOperationException($"{tool} didn't start.");
+        using var process = Process.Start(start) ?? throw new InvalidOperationException(T("{0} didn't start.", tool));
         // Both pipes are drained at once: a tool that fills one while the other is being
         // read would wait forever (pnputil's export prints a line per driver).
         var output = process.StandardOutput.ReadToEndAsync();

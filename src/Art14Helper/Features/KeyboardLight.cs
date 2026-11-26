@@ -150,29 +150,30 @@ internal static class KeyboardLights
 /// <summary>The keyboard light choices for the tray menu and the settings window.</summary>
 internal static class KeyboardLightMenu
 {
+    // English here, translated where they're shown.
     private static readonly (KeyboardLight Light, string Text)[] Brightness =
-        [(KeyboardLight.Off, "Off"), (KeyboardLight.Dim, "Dim"), (KeyboardLight.Bright, "Bright"), (KeyboardLight.Auto, "Auto")];
+        [(KeyboardLight.Off, N("Off")), (KeyboardLight.Dim, N("Dim")), (KeyboardLight.Bright, N("Bright")), (KeyboardLight.Auto, N("Auto"))];
 
     private static readonly (ushort Seconds, string Text)[] IdleTimes =
-        [(0, "Stay on"), (15, "After 15 s"), (30, "After 30 s"), (60, "After 1 min"), (300, "After 5 min")];
+        [(0, N("Stay on")), (15, N("After 15 s")), (30, N("After 30 s")), (60, N("After 1 min")), (300, N("After 5 min"))];
 
     internal static void Build(IMenuBuilder menu)
     {
-        menu.AddItem("Brightness", null, enabled: false);
+        menu.AddItem(T("Brightness"), null, enabled: false);
         var light = AppSettings.CurrentLight;
         foreach (var (value, text) in Brightness)
-            menu.AddItem(text, async () => await ChooseLightAsync(value), @checked: light == value,
-                tooltip: value == KeyboardLight.Auto ? "Follows the room's light: off in daylight, brighter as it gets darker." : null);
+            menu.AddItem(T(text), async () => await ChooseLightAsync(value), @checked: light == value,
+                tooltip: value == KeyboardLight.Auto ? T("Follows the room's light: off in daylight, brighter as it gets darker.") : null);
 
         menu.AddSeparator();
-        menu.AddItem("Turn off when idle", null, enabled: false);
+        menu.AddItem(T("Turn off when idle"), null, enabled: false);
         var idle = AppSettings.LightIdleSeconds;
         foreach (var (seconds, text) in IdleTimes)
-            menu.AddItem(text, async () => await ChooseIdleAsync(seconds), @checked: idle == seconds);
+            menu.AddItem(T(text), async () => await ChooseIdleAsync(seconds), @checked: idle == seconds);
     }
 
     private static Task ChooseLightAsync(KeyboardLight light)
-        => Privileged.KeyboardLight.ApplyFromMenuAsync(light, "The keyboard light wasn't changed.", () =>
+        => Privileged.KeyboardLight.ApplyFromMenuAsync(light, T("The keyboard light wasn't changed."), () =>
         {
             AppSettings.CurrentLight = light;
             AppSettings.ChosenLight = light;
@@ -180,6 +181,6 @@ internal static class KeyboardLightMenu
         });
 
     private static Task ChooseIdleAsync(ushort seconds)
-        => Privileged.KeyboardLightTimeout.ApplyFromMenuAsync(seconds, "The idle timeout wasn't changed.",
+        => Privileged.KeyboardLightTimeout.ApplyFromMenuAsync(seconds, T("The idle timeout wasn't changed."),
             () => AppSettings.LightIdleSeconds = seconds);
 }

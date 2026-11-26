@@ -42,6 +42,13 @@
     <Using Include="System.Drawing" />
     <Using Include="Art14Helper.Native" />
     <Using Include="Art14Helper.Ui" />
+    <!-- T("English text") everywhere: the text in the user's language (App/L10n.cs). -->
+    <Using Include="Art14Helper.L10n" Static="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Translation tables, English text → translation, read by L10n. -->
+    <EmbeddedResource Include="Translations\*.json" LogicalName="Art14Helper.Translations.%(Filename).json" />
   </ItemGroup>
 
 </Project>

@@ -61,30 +61,35 @@ internal static class DeviceInventory
     internal const int BiosId = 23;
 
     /// <summary>Everything HONOR's catalogs know for this laptop family, by component id.</summary>
+    /// <remarks>
+    /// Name and AppName are HONOR's own keys and stay exactly as they are. Generic display
+    /// names and groups are marked with N and translated where the Drivers page shows them;
+    /// product names (Intel ..., BIOS, NFC) read the same in every language.
+    /// </remarks>
     internal static readonly IReadOnlyList<(int Id, string Name, string DisplayName, string? AppName, string Group)> Catalog =
     [
-        (1, "Chipset", "Chipset", null, "Chipset"),
-        (2, "ME", "Intel Management Engine", null, "Chipset"),
-        (3, "Graphics", "Graphics", null, "Graphics"),
-        (4, "SerialIO", "Serial IO", null, "Chipset"),
-        (6, "DPTF", "Intel thermal framework", null, "Chipset"),
-        (12, "WDT", "Watchdog", null, "Chipset"),
-        (14, "Audio", "Audio", null, "Audio"),
-        (15, "WiFi", "Wi-Fi", null, "Networking"),
-        (16, "BT", "Bluetooth", null, "Bluetooth"),
-        (18, "EgisFingerPrint", "Fingerprint", null, "Fingerprint"),
+        (1, "Chipset", N("Chipset"), null, N("Chipset")),
+        (2, "ME", "Intel Management Engine", null, N("Chipset")),
+        (3, "Graphics", N("Graphics"), null, N("Graphics")),
+        (4, "SerialIO", "Serial IO", null, N("Chipset")),
+        (6, "DPTF", N("Intel thermal framework"), null, N("Chipset")),
+        (12, "WDT", N("Watchdog"), null, N("Chipset")),
+        (14, "Audio", N("Audio"), null, N("Audio")),
+        (15, "WiFi", N("Wi-Fi"), null, N("Networking")),
+        (16, "BT", N("Bluetooth"), null, N("Bluetooth")),
+        (18, "EgisFingerPrint", N("Fingerprint"), null, N("Fingerprint")),
         (BiosId, "BIOS", "BIOS", null, "BIOS"),
-        (41, "Monitor", "Monitor", null, "Monitor"),
+        (41, "Monitor", N("Monitor"), null, N("Monitor")),
         (52, "NFC", "NFC", null, "NFC"),
-        (55, "PPM", "Intel PPM", null, "Chipset"),
-        (56, "TXT", "Intel TXT", null, "Chipset"),
-        (65, "ISST", "Intel Smart Sound", null, "Chipset"),
-        (73, "iPMT", "Intel PMT", null, "Chipset"),
-        (74, "NPU", "Intel NPU", null, "Chipset"),
-        (76, "LuxvisionsCameraDrv", "Camera", "HonorCamera", "Camera"),
-        (78, "MEP", "Windows Studio Effects", null, "Camera"),   // processes the camera picture
-        (87, "VDisplay", "Virtual Display", null, "Graphics"),
-        (88, "VHID", "Virtual HID", null, "Software")
+        (55, "PPM", "Intel PPM", null, N("Chipset")),
+        (56, "TXT", "Intel TXT", null, N("Chipset")),
+        (65, "ISST", "Intel Smart Sound", null, N("Chipset")),
+        (73, "iPMT", "Intel PMT", null, N("Chipset")),
+        (74, "NPU", "Intel NPU", null, N("Chipset")),
+        (76, "LuxvisionsCameraDrv", N("Camera"), "HonorCamera", N("Camera")),
+        (78, "MEP", "Windows Studio Effects", null, N("Camera")),   // processes the camera picture
+        (87, "VDisplay", N("Virtual Display"), null, N("Graphics")),
+        (88, "VHID", "Virtual HID", null, N("Software"))
     ];
 
     /// <summary>
@@ -267,7 +272,7 @@ internal static class DeviceInventory
             {
                 Id = -1 - index,
                 Name = "MissingDevice",
-                DisplayName = string.IsNullOrWhiteSpace(device.DisplayName) ? "Unknown device" : device.DisplayName,
+                DisplayName = string.IsNullOrWhiteSpace(device.DisplayName) ? N("Unknown device") : device.DisplayName,
                 PackageType = device.Class ?? "",
                 DeviceName = device.InstanceId
             });

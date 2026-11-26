@@ -19,7 +19,7 @@ internal sealed class DriversPage : IDisposable
     private bool _disposed;
     private IReadOnlyList<DriverComponent>? _components;
     private Dictionary<int, DriverUpdate> _updates = [];
-    private string _status = "Reading installed drivers…";
+    private string _status = T("Reading installed drivers…");
     private bool _statusIsWarning;
     private bool _busy;
     private int? _downloadingId;
@@ -68,7 +68,7 @@ internal sealed class DriversPage : IDisposable
             ?? await TryAsync(() => _service.BuildDeviceListAsync(_stop), "Driver list unreadable");
         if (_components is null)
         {
-            SetStatus("The installed drivers couldn't be read", warning: true);
+            SetStatus(T("The installed drivers couldn't be read"), warning: true);
             return;
         }
         Notify();
@@ -106,20 +106,25 @@ internal sealed class DriversPage : IDisposable
         if (_busy || _components is null)
             return;
         _busy = true;
-        SetStatus("Checking for updates…");
+        SetStatus(T("Checking for updates…"));
         try
         {
             var result = await Task.Run(() => _service.CheckAsync(_components, _stop));
             if (!result.IsComplete)
             {
-                SetStatus("HONOR's server didn't respond. Try again later.", warning: true);
+                SetStatus(T("HONOR's server didn't respond. Try again later."), warning: true);
                 return;
             }
             _components = result.Components;
             _lastCheck = DateTime.Now;
             _updates = result.Updates.ToDictionary(update => update.Component.Id);   // one package per component already
             var count = Shown(_components).Count(c => _updates.TryGetValue(c.Id, out var u) && u.IsUpdate);
-            SetStatus(count == 0 ? "Everything is up to date" : $"{count} update{(count == 1 ? "" : "s")} available",
+            SetStatus(count switch
+                {
+                    0 => T("Everything is up to date"),
+                    1 => T("1 update available"),
+                    _ => T("{0} updates available", count)
+                },
                 warning: count > 0);
         }
         catch (OperationCanceledException)
@@ -128,7 +133,7 @@ internal sealed class DriversPage : IDisposable
         catch (Exception exception)
         {
             Log.Error("Update check stopped", exception);
-            SetStatus("The update check didn't finish", warning: true);
+            SetStatus(T("The update check didn't finish"), warning: true);
         }
         finally
         {
@@ -148,9 +153,9 @@ internal sealed class DriversPage : IDisposable
         var shown = _components is null ? [] : Shown(_components).ToList();
         var installed = shown.Where(c => c.CurrentVersion != "0").ToList();
         var checkedLine = _lastCheck is { } at
-            ? $"Checked " + ((DateTime.Now - at).TotalMinutes < 1 ? "just now" : at.ToString("t", CultureInfo.CurrentCulture))
-              + $" · HONOR lists {installed.Count(c => _updates.ContainsKey(c.Id))} of your {installed.Count} drivers"
-            : $"{MachineProfile.ProductName} · serial {_serialNumber ?? "…"}";
+            ? ((DateTime.Now - at).TotalMinutes < 1 ? T("Checked just now") : T("Checked {0}", at.ToString("t", CultureInfo.CurrentCulture)))
+              + " · " + T("HONOR lists {0} of your {1} drivers", installed.Count(c => _updates.ContainsKey(c.Id)), installed.Count)
+            : $"{MachineProfile.ProductName} · " + T("serial {0}", _serialNumber ?? "…");
         sections.Add((null,
         [
             new RowSpec
@@ -159,13 +164,13 @@ internal sealed class DriversPage : IDisposable
                 Secondary = checkedLine,
                 Glyph = _busy ? "\uE895" : _statusIsWarning ? "\uE7BA" : "\uE73E",
                 Kind = _busy ? RowKind.Info : RowKind.Action,
-                Value = _busy ? null : "Check again",
+                Value = _busy ? null : T("Check again"),
                 OnClick = _busy ? null : () => _ = CheckAsync()
             },
             new RowSpec
             {
-                Text = "What the check sends to HONOR",
-                Secondary = "Laptop model, BIOS and driver versions, Windows version and language. No serial number or personal data.",
+                Text = T("What the check sends to HONOR"),
+                Secondary = T("Laptop model, BIOS and driver versions, Windows version and language. No serial number or personal data."),
                 Glyph = "\uE72E",
                 Kind = RowKind.Info
             }
@@ -177,7 +182,7 @@ internal sealed class DriversPage : IDisposable
         // Updates first: the only rows that need a decision.
         var pending = shown.Where(c => _updates.TryGetValue(c.Id, out var u) && u.IsUpdate && c.CurrentVersion != "0").ToList();
         if (pending.Count > 0)
-            sections.Add(("Updates available", pending.Select(Row).ToList()));
+            sections.Add((T("Updates available"), pending.Select(Row).ToList()));
 
         // HONOR's server lists only the drivers HONOR still publishes for this model.
         // The rest usually come through Windows Update or the device maker; the app
@@ -190,27 +195,27 @@ internal sealed class DriversPage : IDisposable
         if (_lastCheck is null)
         {
             if (rest.Count > 0)
-                sections.Add(("Installed", rest.Select(Row).ToList()));
+                sections.Add((T("Installed"), rest.Select(Row).ToList()));
         }
         else
         {
             if (fromHonor.Count > 0)
-                sections.Add(("Checked with HONOR", fromHonor.Select(Row).ToList()));
+                sections.Add((T("Checked with HONOR"), fromHonor.Select(Row).ToList()));
             if (fromWindows.Count > 0)
-                sections.Add(("Not in HONOR's list (usually updated by Windows Update)", fromWindows.Select(Row).ToList()));
+                sections.Add((T("Not in HONOR's list (usually updated by Windows Update)"), fromWindows.Select(Row).ToList()));
         }
 
         // Not installed, but HONOR offers a package: optional extras.
         var optional = shown.Where(c => c.CurrentVersion == "0" && _updates.ContainsKey(c.Id)).ToList();
         if (optional.Count > 0)
-            sections.Add(("Available, not installed", optional.Select(Row).ToList()));
+            sections.Add((T("Available, not installed"), optional.Select(Row).ToList()));
 
-        sections.Add(("Backup for a clean reinstall",
+        sections.Add((T("Backup for a clean reinstall"),
         [
             new RowSpec
             {
-                Text = "Back up drivers",
-                Secondary = "Saves every installed driver and the panel's factory color calibration in one zip.",
+                Text = T("Back up drivers"),
+                Secondary = T("Saves every installed driver and the panel's factory color calibration in one zip."),
                 Glyph = "\uE896",
                 Kind = RowKind.Action,
                 Enabled = !_busy,
@@ -218,8 +223,8 @@ internal sealed class DriversPage : IDisposable
             },
             new RowSpec
             {
-                Text = "Restore drivers",
-                Secondary = "Installs every driver from such a zip, for example after reinstalling Windows.",
+                Text = T("Restore drivers"),
+                Secondary = T("Installs every driver from such a zip, for example after reinstalling Windows."),
                 Glyph = "\uE8B5",
                 Kind = RowKind.Action,
                 Enabled = !_busy,
@@ -243,33 +248,33 @@ internal sealed class DriversPage : IDisposable
         string? value = null;
         if (downloading)
         {
-            value = _downloadText ?? "Downloading…";
+            value = _downloadText ?? T("Downloading…");
         }
         else if (hasUpdate)
         {
-            badge = "Update";
+            badge = T("Update");
             tone = BadgeTone.Attention;
             value = update!.Version;
         }
         else if (notInstalled && update is not null)
         {
-            badge = "Get";
+            badge = T("Get");
             tone = BadgeTone.Attention;
             value = update.Version;
         }
         else if (update is not null)
         {
-            badge = "Up to date";
+            badge = T("Up to date");
             tone = BadgeTone.Success;
         }
         else if (component.Id == BiosId && _lastCheck is not null)
         {
-            badge = "No update listed";
+            badge = T("No update listed");
         }
 
-        var secondary = $"{Category(component)} · " + (notInstalled ? "not installed" : component.CurrentVersion);
+        var secondary = $"{Category(component)} · " + (notInstalled ? T("not installed") : component.CurrentVersion);
         if ((hasUpdate || notInstalled) && date.Length > 0)
-            secondary += $" · new version from {date}";
+            secondary += " · " + T("new version from {0}", date);
         return new RowSpec
         {
             Text = Clean(TitleOf(component)),
@@ -295,7 +300,7 @@ internal sealed class DriversPage : IDisposable
     private async Task DownloadAsync(DriverUpdate update)
     {
         _downloadingId = update.Component.Id;
-        _downloadText = "Downloading 0%";
+        _downloadText = T("Downloading {0}%", 0);
         Notify();
         try
         {
@@ -305,7 +310,7 @@ internal sealed class DriversPage : IDisposable
                 if (percent == shown)
                     return;   // the page redraws only when the number changes
                 shown = percent;
-                _downloadText = percent < 100 ? $"Downloading {percent}%" : "Checking file…";
+                _downloadText = percent < 100 ? T("Downloading {0}%", percent) : T("Checking file…");
                 Notify();
             });
             await _service.DownloadAsync(update, progress, _stop);
@@ -317,7 +322,7 @@ internal sealed class DriversPage : IDisposable
         catch (Exception exception)
         {
             Log.Error($"Download of {update.Component.Name} {update.Version} failed", exception);
-            CommonDialogs.Message(DialogOwner, exception.Message, "Drivers", CommonDialogs.Icon.Error);
+            CommonDialogs.Message(DialogOwner, exception.Message, T("Drivers"), CommonDialogs.Icon.Error);
         }
         finally
         {
@@ -329,25 +334,30 @@ internal sealed class DriversPage : IDisposable
 
     private async Task ExportAsync()
     {
-        if (CommonDialogs.AskForFile(Owner, save: true, "Back up drivers", "Zip archive (*.zip)|*.zip",
+        // The file name stays English: it's a file, not a text on screen.
+        if (CommonDialogs.AskForFile(Owner, save: true, T("Back up drivers"), T("Zip archive (*.zip)") + "|*.zip",
                 $"{MachineProfile.ProductName}-drivers-{DateTime.Now:yyyy-MM-dd}.zip", "zip") is not { } zip)
             return;
-        await RunBackupAsync("Backing up drivers…", stop => DriverBackup.BackupAsync(zip, stop),
-            done => $"{done.Packages} driver packages are in\n{zip}", rereadDrivers: false);
+        await RunBackupAsync(N("Backing up drivers…"), stop => DriverBackup.BackupAsync(zip, stop),
+            done => T("{0} driver packages are in\n{1}", done.Packages, zip), rereadDrivers: false);
     }
 
     private async Task ImportAsync()
     {
-        if (CommonDialogs.AskForFile(Owner, save: false, "Restore drivers", "Driver backup or .inf (*.zip;*.inf)|*.zip;*.inf|All files (*.*)|*.*") is not { } source)
+        if (CommonDialogs.AskForFile(Owner, save: false, T("Restore drivers"),
+                T("Driver backup or .inf (*.zip;*.inf)") + "|*.zip;*.inf|" + T("All files (*.*)") + "|*.*") is not { } source)
             return;
-        await RunBackupAsync("Restoring drivers…", stop => DriverBackup.RestoreAsync(source, stop),
-            done => $"{done.Packages} driver packages installed." + (done.NeedsRestart ? "\nRestart Windows to finish." : ""),
+        await RunBackupAsync(N("Restoring drivers…"), stop => DriverBackup.RestoreAsync(source, stop),
+            done => done.NeedsRestart
+                ? T("{0} driver packages installed.\nRestart Windows to finish.", done.Packages)
+                : T("{0} driver packages installed.", done.Packages),
             rereadDrivers: true);
     }
 
     /// <summary>
     /// Runs a backup or restore with the page marked busy, reports the outcome, and after a
     /// restore reads the installed versions again and re-checks with HONOR.
+    /// <paramref name="busyText"/> is English (marked with N at the caller): shown translated, logged as is.
     /// </summary>
     private async Task RunBackupAsync(string busyText, Func<CancellationToken, Task<DriverBackupResult>> work,
         Func<DriverBackupResult, string> describeSuccess, bool rereadDrivers)
@@ -356,7 +366,7 @@ internal sealed class DriversPage : IDisposable
             return;
         var before = (_status, _statusIsWarning);
         _busy = true;
-        SetStatus(busyText);
+        SetStatus(T(busyText));
         DriverBackupResult? outcome = null;
         try
         {
@@ -379,7 +389,7 @@ internal sealed class DriversPage : IDisposable
         if (outcome is null)
             return;
 
-        CommonDialogs.Message(DialogOwner, outcome.Done ? describeSuccess(outcome) : outcome.Problem ?? "Something went wrong.", "Drivers",
+        CommonDialogs.Message(DialogOwner, outcome.Done ? describeSuccess(outcome) : outcome.Problem ?? T("Something went wrong."), T("Drivers"),
             outcome.Done ? CommonDialogs.Icon.Information : CommonDialogs.Icon.Error);
         if (outcome.Done && rereadDrivers && await TryAsync(() => _service.BuildDeviceListAsync(_stop), "Driver list unreadable after restore") is { } fresh)
         {
@@ -392,13 +402,17 @@ internal sealed class DriversPage : IDisposable
 
     // ---- Names ----
 
+    // The catalog's groups and generic names are English (marked with N in DeviceInventory) and
+    // translated here, only for the screen. HONOR's own category names have no table line and
+    // stay as they come; Windows' device names are already in the user's language.
+
     /// <summary>The section a driver is listed under; packages without a catalog entry use HONOR's category name.</summary>
     private static string Category(DriverComponent component)
-        => DeviceInventory.CatalogEntry(component.Id)?.Group ?? component.DisplayName;
+        => T(DeviceInventory.CatalogEntry(component.Id)?.Group ?? component.DisplayName);
 
     /// <summary>The device's own name when Windows has one, else the component's generic name.</summary>
     private static string TitleOf(DriverComponent component)
-        => string.IsNullOrWhiteSpace(component.DeviceName) ? component.DisplayName : component.DeviceName;
+        => string.IsNullOrWhiteSpace(component.DeviceName) ? T(component.DisplayName) : component.DeviceName;
 
     /// <summary>A yyyy-MM-dd release date in the user's short date format; empty when there's none.</summary>
     private static string FormatDate(string? isoDate)

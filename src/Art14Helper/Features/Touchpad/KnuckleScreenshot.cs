@@ -41,7 +41,7 @@ internal static class KnuckleScreenshot
             // Also on the clipboard, as Windows' own screenshot keys do: ready to paste.
             var image = Clipboard.ImageData(shot);
             UiThread.Post(() => Popup.Show(PopupIcon.Screenshot,
-                Clipboard.SetImage(image) ? "Screenshot copied" : "Screenshot saved", @"In Pictures\Screenshots"));
+                Clipboard.SetImage(image) ? T("Screenshot copied") : T("Screenshot saved"), T("In Pictures\\Screenshots")));
         }
         catch (Exception exception)
         {

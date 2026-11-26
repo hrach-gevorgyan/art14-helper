@@ -89,6 +89,9 @@ internal static class AppSettings
         set => SetText("App.UpdateCheckedAt", value?.ToUniversalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture));
     }
     internal static string? UpdateAnnounced { get => GetText("App.UpdateAnnounced"); set => SetText("App.UpdateAnnounced", value); }
+
+    // The language of the app's text: Auto (Windows' display language) unless the user picked one.
+    internal static AppLanguage Language { get => GetEnum<AppLanguage>("App.Language") ?? AppLanguage.Auto; set => SetEnum<AppLanguage>("App.Language", value == AppLanguage.Auto ? null : value); }
     // The power plan that change was made in, so it's put back there even if another plan is active by then.
     internal static Guid? GetLidPlan(bool onBattery) => Guid.TryParse(GetText(PerSource("Lid.Plan", onBattery)), out var plan) ? plan : null;
     internal static void SetLidPlan(bool onBattery, Guid? plan) => SetText(PerSource("Lid.Plan", onBattery), plan?.ToString());

@@ -32,11 +32,11 @@ internal sealed class UiFont : IDisposable
     /// <paramref name="scale"/>. Shared and kept for the app's lifetime: there are only a
     /// handful of sizes per monitor scale.
     /// </summary>
-    internal static UiFont Get(string family, float pixels, float scale)
+    internal static UiFont Get(string family, float pixels, float scale, bool semibold = false)
     {
         var size = (int)Math.Round(pixels * scale);
-        if (!Made.TryGetValue((family, size, false), out var font))
-            Made[(family, size, false)] = font = new UiFont(family, size, false);
+        if (!Made.TryGetValue((family, size, semibold), out var font))
+            Made[(family, size, semibold)] = font = new UiFont(family, size, semibold);
         return font;
     }
 

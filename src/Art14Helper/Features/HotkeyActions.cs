@@ -25,14 +25,15 @@ internal enum HotkeyAction
 
 internal static class HotkeyActions
 {
+    /// <summary>The fixed choices; the text is English, translated where it's shown.</summary>
     internal static readonly (HotkeyAction Action, string Text)[] Choices =
     [
-        (HotkeyAction.Nothing, "Nothing"),
-        (HotkeyAction.Calculator, "Calculator"),
-        (HotkeyAction.TaskManager, "Task Manager"),
-        (HotkeyAction.Snipping, "Screen snip"),
-        (HotkeyAction.Settings, "Windows Settings"),
-        (HotkeyAction.Explorer, "File Explorer")
+        (HotkeyAction.Nothing, N("Nothing")),
+        (HotkeyAction.Calculator, N("Calculator")),
+        (HotkeyAction.TaskManager, N("Task Manager")),
+        (HotkeyAction.Snipping, N("Screen snip")),
+        (HotkeyAction.Settings, N("Windows Settings")),
+        (HotkeyAction.Explorer, N("File Explorer"))
     ];
 
     /// <summary>Runs the action set for the key. Called off the WMI event thread.</summary>
@@ -54,7 +55,7 @@ internal static class HotkeyActions
         if (action == HotkeyAction.Custom && !File.Exists(target))
         {
             Log.Error($"Hotkey program not found: {target}");
-            Popup.Show(PopupIcon.Warning, "Program not found", Path.GetFileName(target));
+            Popup.Show(PopupIcon.Warning, T("Program not found"), Path.GetFileName(target));
             return;
         }
 

@@ -6,6 +6,19 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+### Added
+- Russian and Simplified Chinese. The app follows Windows' display language, or the language
+  chosen in Settings > System > Language; the choice applies at once. The log and Copy
+  diagnostics stay in English for bug reports.
+
+### Changed
+- Chinese text uses Windows' Chinese interface font (Microsoft YaHei UI), so a line never
+  mixes fonts.
+- Popups are wider when needed, and the title keeps its room before the detail is cut.
+
+### Fixed
+- The switch's On/Off label is as wide as the word needs.
+
 ## [1.2.0] - 2026-11-27
 
 ### Added

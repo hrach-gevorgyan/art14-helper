@@ -135,8 +135,13 @@ internal sealed partial class TrayApp
         _ = Task.Run(() =>
         {
             var battery = PowerSource.Battery;
-            var state = battery.Charging ? "Charging" : "Plugged in";
-            var title = battery.Percent is { } percent ? $"{state} · {percent}%" : state;
+            var title = (battery.Charging, battery.Percent) switch
+            {
+                (true, { } percent) => T("Charging · {0}%", percent),
+                (false, { } percent) => T("Plugged in · {0}%", percent),
+                (true, null) => T("Charging"),
+                (false, null) => T("Plugged in")
+            };
             var detail = Join(ChargerDetail(battery, Battery.ReadCharge(), ChargeTarget()), switchedHz is { } hz ? $"{hz} Hz" : null);
             Popup.Show(battery.Charging ? PopupIcon.BatteryCharging : PopupIcon.Battery, title, detail, battery: battery.Percent);
         });
@@ -152,7 +157,7 @@ internal sealed partial class TrayApp
             if (switched is not { } hz || _disposed)
                 return;
             var percent = PowerSource.Battery.Percent;
-            Popup.Show(PopupIcon.Battery, percent is { } level ? $"On battery · {level}%" : "On battery", $"{hz} Hz to save power", battery: percent);
+            Popup.Show(PopupIcon.Battery, percent is { } level ? T("On battery · {0}%", level) : T("On battery"), T("{0} Hz to save power", hz), battery: percent);
         }
         catch (Exception exception)
         {
@@ -170,16 +175,19 @@ internal sealed partial class TrayApp
     internal static string? ChargerDetail(BatteryStatus battery, BatteryCharge? charge, (int Start, int End) window)
     {
         if (battery.Percent is { } percent && percent >= window.End)
-            return window.End >= 100 ? "Full" : "Limit reached";   // the title already says the percentage
+            return window.End >= 100 ? T("Full") : T("Limit reached");   // the title already says the percentage
         if (!battery.Charging)
             return window.Start > 0 && battery.Percent is { } level && level >= window.Start
-                ? $"Charges below {window.Start}%"
+                ? T("Charges below {0}%", window.Start)
                 : null;
-        var target = window.End >= 100 ? "full" : $"{window.End}%";
+        // One whole sentence per case, so each language can order it its own way.
+        var full = window.End >= 100;
         if (charge?.TimeTo(window.End) is not { } left)
-            return $"To {target}";
+            return full ? T("To full") : T("To {0}%", window.End);
         var minutes = Math.Max(1, (int)Math.Round(left.TotalMinutes));
-        return minutes >= 60 ? $"{minutes / 60} h {minutes % 60:00} min to {target}" : $"{minutes} min to {target}";
+        if (minutes >= 60)
+            return full ? T("{0} h {1:00} min to full", minutes / 60, minutes % 60) : T("{0} h {1:00} min to {2}%", minutes / 60, minutes % 60, window.End);
+        return full ? T("{0} min to full", minutes) : T("{0} min to {1}%", minutes, window.End);
     }
 
     private static async Task EndChargeOnceAsync()
