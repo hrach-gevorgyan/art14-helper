@@ -92,11 +92,17 @@ internal static class Installer
     /// </summary>
     internal static int Install(string options)
     {
+        var silent = options == SilentSwitch;
         if (!Privileged.IsElevated)
         {
+            if (silent)
+                return RunElevatedAndWait("--install", SilentSwitch);
             CommonDialogs.Message(IntPtr.Zero, "Installing needs administrator rights.", Title, CommonDialogs.Icon.Error);
             return 1;
         }
+
+        if (silent)
+            return Silently("install", progress => InstallCore(new SetupWindow.Choices(true, true, false), update: IsInstalled, progress, detached: true));
 
         var (choices, update) = DecodeChoices(options);
         using var window = new SetupWindow(SetupWindow.Mode.Installing, (_, progress) => InstallCore(choices, update, progress));
@@ -104,7 +110,12 @@ internal static class Installer
         return window.Result is null ? 1 : 0;
     }
 
-    private static string InstallCore(SetupWindow.Choices choices, bool update, Action<string> progress)
+    /// <param name="detached">
+    /// Silent installs: start the app through the sign-in task, so it isn't a child of the
+    /// installer. Package managers and scripts may wait for the installer's whole process
+    /// tree, and the tray app never ends.
+    /// </param>
+    private static string InstallCore(SetupWindow.Choices choices, bool update, Action<string> progress, bool detached = false)
     {
         var source = Environment.ProcessPath
             ?? throw new InvalidOperationException("Could not determine the path to this exe.");
@@ -142,13 +153,66 @@ internal static class Installer
         Log.Info("Installed to " + InstalledExe);
 
         progress("Starting…");
-        // Started directly (inherits this elevated process), not through the logon
-        // task: the task may still count the copy stopped a moment ago as running
-        // and would ignore a new start.
-        Process.Start(new ProcessStartInfo(InstalledExe) { UseShellExecute = true })?.Dispose();
+        // Normally started directly (inherits this elevated process), not through the logon
+        // task: the task may still count the copy stopped a moment ago as running and would
+        // ignore a new start. Detached, the task goes first; if it doesn't start, directly.
+        if (!detached || !Autostart.TryStartNow(InstalledExe))
+            Process.Start(new ProcessStartInfo(InstalledExe) { UseShellExecute = true })?.Dispose();
         return update
             ? $"{AppInfo.Name} is updated and running in the tray."
             : $"{AppInfo.Name} is installed and running in the tray. Left-click its icon to open it; it's also in the Start menu.";
+    }
+
+    /// <summary>
+    /// <c>--install --silent</c> and <c>--uninstall --silent</c>: the same work with no window
+    /// and no questions, for package managers (winget) and scripts. Install uses the setup
+    /// window's defaults (start with Windows, recommended settings; an update keeps every
+    /// choice); uninstall removes the settings and leaves the charge limit as it is. Steps and
+    /// failures go to the log; the exit code says how it went (0 done, 1 failed).
+    /// </summary>
+    internal const string SilentSwitch = "--silent";
+
+    private static int Silently(string what, Func<Action<string>, string> work)
+    {
+        try
+        {
+            work(step => Log.Info($"Silent {what}: {step.TrimEnd('…')}"));
+            return 0;
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"Silent {what} failed", exception);
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Starts this exe again through UAC with <paramref name="argument"/> and <paramref name="value"/>
+    /// and passes on its exit code, so the caller (a package manager) learns how it went.
+    /// 1 when UAC was declined or the copy didn't start.
+    /// </summary>
+    private static int RunElevatedAndWait(string argument, string value)
+    {
+        var self = Environment.ProcessPath;
+        if (self is null)
+            return 1;
+        var start = new ProcessStartInfo(self) { UseShellExecute = true, Verb = "runas" };
+        start.ArgumentList.Add(argument);
+        start.ArgumentList.Add(value);
+        start.ArgumentList.Add(WaitingPidPrefix + Environment.ProcessId);   // so the elevated copy doesn't close this one
+        try
+        {
+            using var copy = Process.Start(start);
+            if (copy is null)
+                return 1;
+            copy.WaitForExit();
+            return copy.ExitCode;
+        }
+        catch (Win32Exception exception)
+        {
+            Log.Error($"{argument} {value}: the elevated copy didn't start", exception);
+            return 1;
+        }
     }
 
     private static string EncodeChoices(SetupWindow.Choices choices, bool update)
@@ -247,6 +311,7 @@ internal static class Installer
             key.SetValue("DisplayIcon", InstalledExe);
             key.SetValue("InstallLocation", InstallDirectory);
             key.SetValue("UninstallString", $"\"{InstalledExe}\" --uninstall");
+            key.SetValue("QuietUninstallString", $"\"{InstalledExe}\" --uninstall {SilentSwitch}");   // package managers (winget)
             key.SetValue("NoModify", 1, Microsoft.Win32.RegistryValueKind.DWord);
             key.SetValue("NoRepair", 1, Microsoft.Win32.RegistryValueKind.DWord);
             key.SetValue("EstimatedSize", (int)(new FileInfo(InstalledExe).Length / 1024), Microsoft.Win32.RegistryValueKind.DWord);
@@ -262,18 +327,28 @@ internal static class Installer
     /// limit, Fn lock, keyboard) stay as they are; the screen goes back to native
     /// colors. Asks for UAC if needed and confirms first.
     /// </summary>
-    internal static int Uninstall()
+    internal static int Uninstall(bool silent = false)
     {
         if (!Privileged.IsElevated)
         {
+            if (silent)
+                return RunElevatedAndWait("--uninstall", SilentSwitch);
             var self = Environment.ProcessPath;
             return self is not null && TryStartElevated(self, "--uninstall") ? 0 : 1;
         }
 
-        using var window = new SetupWindow(SetupWindow.Mode.Uninstall, (choices, progress) => UninstallCore(choices, progress));
-        window.ShowDialog();
-        if (window.Result is null)
-            return 1;
+        if (silent)
+        {
+            if (Silently("uninstall", progress => UninstallCore(new SetupWindow.Choices(false, false, KeepSettings: false), progress)) != 0)
+                return 1;
+        }
+        else
+        {
+            using var window = new SetupWindow(SetupWindow.Mode.Uninstall, (choices, progress) => UninstallCore(choices, progress));
+            window.ShowDialog();
+            if (window.Result is null)
+                return 1;
+        }
 
         // Started last, after the window is closed: this exe may live in the program
         // folder and stays locked while this process runs. The command waits a moment
@@ -354,17 +429,21 @@ internal static class Installer
     private static void StopOtherInstances()
     {
         var self = Environment.ProcessId;
+        // The copy without admin rights that started this one through UAC and waits to pass on
+        // the exit code (silent install and uninstall): killing it would report a failure.
+        var waiting = WaitingLauncher(Environment.GetCommandLineArgs());
+        bool Spared(int id) => id == self || id == waiting;
         if (WindowMessaging.PostToAppWindow(TrayWindowClass, TrayWindowCaption, InstalledExe, WmExit))
         {
             var deadline = Environment.TickCount64 + 3000;
-            while (Environment.TickCount64 < deadline && Process.GetProcessesByName("Art14Helper").Count(process => Release(process) != self) > 0)
+            while (Environment.TickCount64 < deadline && Process.GetProcessesByName("Art14Helper").Count(process => !Spared(Release(process))) > 0)
                 Thread.Sleep(100);
         }
         foreach (var process in Process.GetProcessesByName("Art14Helper"))
         {
             using (process)
             {
-                if (process.Id == self)
+                if (Spared(process.Id))
                     continue;
                 try
                 {
@@ -378,6 +457,14 @@ internal static class Installer
             }
         }
     }
+
+    private const string WaitingPidPrefix = "--waiting-pid=";
+
+    /// <summary>The process id given with <c>--waiting-pid=</c> on the command line, if any.</summary>
+    internal static int? WaitingLauncher(string[] commandLine)
+        => commandLine.Select(arg => arg.StartsWith(WaitingPidPrefix, StringComparison.Ordinal)
+                && int.TryParse(arg.AsSpan(WaitingPidPrefix.Length), out var id) && id > 0 ? id : (int?)null)
+            .FirstOrDefault(id => id is not null);
 
     /// <summary>The process id, disposing the Process object on the way.</summary>
     private static int Release(Process process)

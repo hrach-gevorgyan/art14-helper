@@ -20,6 +20,9 @@ All notable changes to Art14 Helper. The format follows
   asks GitHub for its latest release, sending only its version, and when a newer one is out
   says so once and adds an entry to the tray menu that opens the release page. It never
   downloads anything.
+- Silent install and uninstall for scripts and package managers: `--install --silent` and
+  `--uninstall --silent`, with no window and an exit code that says how it went. Windows'
+  app list gets a matching quiet uninstall command.
 
 ### Fixed
 - Popups follow Windows' Animation effects switch: with it off, they appear and go without
