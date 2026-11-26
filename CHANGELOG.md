@@ -6,6 +6,8 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-27
+
 ### Added
 - Popup when the magnetic camera is taken off or put back; put back while the F8 privacy
   switch is on, it says so, instead of apps silently getting a black picture.
@@ -64,5 +66,6 @@ The first release.
 - Installer, updater and uninstaller; starts at sign-in without prompts.
 - One native exe of about 10 MB, about 11 MB of memory, no work while idle.
 
+[1.1.0]: ../../releases/tag/v1.1.0
 [1.0.1]: ../../releases/tag/v1.0.1
 [1.0.0]: ../../releases/tag/v1.0.0
