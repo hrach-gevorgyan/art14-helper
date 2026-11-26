@@ -142,7 +142,7 @@ internal sealed partial class TrayApp
                 (true, null) => T("Charging"),
                 (false, null) => T("Plugged in")
             };
-            var detail = Join(ChargerDetail(battery, Battery.ReadCharge(), ChargeTarget()), switchedHz is { } hz ? $"{hz} Hz" : null);
+            var detail = Join(ChargerDetail(battery, Battery.ReadCharge(), ChargeTarget()), switchedHz is { } hz ? T("{0} Hz", hz) : null);
             Popup.Show(battery.Charging ? PopupIcon.BatteryCharging : PopupIcon.Battery, title, detail, battery: battery.Percent);
         });
     }

@@ -129,6 +129,49 @@ public partial class TranslationTests
     }
 
     [Fact]
+    public void EnglishModeAndErrorsStayEnglishForTheLog()
+    {
+        try
+        {
+            L10n.Current = AppLanguage.Russian;
+            const string text = "Touchscreen not found.";
+            Assert.NotEqual(text, L10n.T(text));                          // it has a Russian line
+            Assert.Equal(text, L10n.InEnglish(() => L10n.T(text)));        // diagnostics and the log: English
+            Assert.Equal("Home", L10n.InEnglish(() => L10n.T("Home§page")));   // a context never shows
+
+            var error = L10n.Shown(m => new InvalidOperationException(m), "Windows didn't switch the touchscreen: {0}", "code 5");
+            Assert.Equal("Windows didn't switch the touchscreen: code 5", error.Message);   // what the log writes
+            Assert.Equal(L10n.T("Windows didn't switch the touchscreen: {0}", "code 5"), L10n.ShownMessage(error));
+            Assert.NotEqual(error.Message, L10n.ShownMessage(error));
+            Assert.Equal("plain", L10n.ShownMessage(new IOException("plain")));   // others show their message
+        }
+        finally
+        {
+            L10n.Current = AppLanguage.English;
+        }
+    }
+
+    [Fact]
+    public void AnElevatedCopyTakesTheStartersLanguage()
+    {
+        try
+        {
+            L10n.Current = AppLanguage.ChineseSimplified;
+            var argument = L10n.LanguageArgument;
+            L10n.Current = AppLanguage.English;
+            L10n.TakeLanguageArgument(["--set-charge-limit", "Home", argument]);
+            Assert.Equal(AppLanguage.ChineseSimplified, L10n.Current);
+            L10n.Current = AppLanguage.English;
+            L10n.TakeLanguageArgument(["--lang=Klingon", "--lang=99"]);   // nonsense changes nothing
+            Assert.Equal(AppLanguage.English, L10n.Current);
+        }
+        finally
+        {
+            L10n.Current = AppLanguage.English;
+        }
+    }
+
+    [Fact]
     public void ParsesTablesWithEmptyLinesAsMissing()
     {
         using var json = new MemoryStream(Encoding.UTF8.GetBytes("""{ "On": "Вкл", "Off": "", }"""));

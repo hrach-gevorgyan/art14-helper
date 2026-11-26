@@ -146,7 +146,7 @@ internal static class DriverPackage
             await using var file = File.OpenRead(downloaded);
             var actual = await SHA256.HashDataAsync(file, token);
             if (!Convert.ToHexString(actual).Equals(update.Sha256.Trim(), StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException(T("The download is damaged: its SHA-256 differs from the one HONOR published."));
+                throw Shown(m => new InvalidDataException(m), N("The download is damaged: its SHA-256 differs from the one HONOR published."));
         }
 
         // Judged on where the file really came from too: a redirect may lead elsewhere.
@@ -182,7 +182,7 @@ internal static class DriverPackage
             foreach (var file in code)
                 Authenticode.Verify(file, requireHonorSigner: false);
         if (programs.Count == 0 && !fromHonor && string.IsNullOrWhiteSpace(update.Sha256))
-            throw new InvalidDataException(T("This download has neither a signature nor a checksum to check, so it wasn't saved."));
+            throw Shown(m => new InvalidDataException(m), N("This download has neither a signature nor a checksum to check, so it wasn't saved."));
         return result;
     }
 
@@ -251,12 +251,12 @@ internal static class DriverPackage
         var total = zip.Entries.Sum(entry => entry.Length);
         var room = new DriveInfo(Path.GetPathRoot(root)!).AvailableFreeSpace - (1L << 30);
         if (zip.Entries.Count > MaxEntries || total > MaxUnpackedBytes || total > room)
-            throw new InvalidDataException(T("The package is too large to unpack ({0} files, {1} MB).", zip.Entries.Count, total / 1048576));
+            throw Shown(m => new InvalidDataException(m), N("The package is too large to unpack ({0} files, {1} MB)."), zip.Entries.Count, total / 1048576);
         foreach (var entry in zip.Entries)
         {
             var target = Path.GetFullPath(Path.Combine(root, entry.FullName));
             if (!target.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException(T("The driver package tries to write outside its folder ({0}).", entry.FullName));
+                throw Shown(m => new InvalidDataException(m), N("The driver package tries to write outside its folder ({0})."), entry.FullName);
             if (entry.Name.Length == 0)
             {
                 Directory.CreateDirectory(target); // a folder entry

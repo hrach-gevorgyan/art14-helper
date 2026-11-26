@@ -47,36 +47,48 @@ internal static class StatusReport
     internal static string ForTrayTooltip(bool limited = false)
     {
         var reading = Fresh();
-        var text = Tooltip(Shown(LightWord(reading)), Shown(ChargeWord(reading)), BatteryWatts(), reading);
-        if (KeepAwake.IsOn)
-            text = (RemoteMode.IsOn ? T("Remote mode: awake, lid can close") : T("Awake {0}", KeepAwake.Describe())) + "\n" + text;
+        var first = new List<string>();
         if (limited)
-            text = LimitedLine + "\n" + text;   // first: it explains why the rest is short
-        return text.Length > TooltipLimit ? text[..TooltipLimit] : text;
+            first.Add(LimitedLine);   // first: it explains why the rest is short
+        if (KeepAwake.IsOn)
+            first.Add(RemoteMode.IsOn ? T("Remote mode: awake, lid can close") : T("Awake {0}", KeepAwake.Describe()));
+        return Tooltip(Shown(LightWord(reading)), Shown(ChargeWord(reading)), BatteryWatts(), reading, first);
     }
 
     internal static string LimitedLine => T("Limited mode: no admin rights");
 
     /// <summary>
-    /// The tooltip text: light, charge limit, battery power, temperatures and fans, one per
-    /// line (single \n: every character counts), never longer than <see cref="TooltipLimit"/>.
+    /// The tooltip text: <paramref name="first"/> lines, then light, charge limit, battery power,
+    /// temperatures and fans, one per line (single \n: every character counts), never longer
+    /// than <see cref="TooltipLimit"/>. Whole lines only: one that doesn't fit is left out
+    /// (longer languages lose the fans first), never cut, since a number cut in half is a wrong number.
     /// </summary>
-    internal static string Tooltip(string? light, string? charge, double? watts, SensorReading? reading)
+    internal static string Tooltip(string? light, string? charge, double? watts, SensorReading? reading, IReadOnlyList<string>? first = null)
     {
         var text = new StringBuilder(TooltipLimit + 40);
-        text.Append(T("Keyboard light: {0}", light ?? "?"));
-        text.Append('\n').Append(T("Charge limit: {0}", charge ?? "?"));
+        bool Add(string line)
+        {
+            var needed = line.Length + (text.Length > 0 ? 1 : 0);
+            if (text.Length + needed > TooltipLimit)
+                return false;
+            if (text.Length > 0)
+                text.Append('\n');
+            text.Append(line);
+            return true;
+        }
+        foreach (var line in first ?? [])
+            Add(line);
+        Add(T("Keyboard light: {0}", light ?? "?"));
+        Add(T("Charge limit: {0}", charge ?? "?"));
         if (watts is { } power)
-            text.Append('\n').Append(T("Battery: {0}", PowerText(power)));   // the battery's own flow, not the laptop's draw
+            Add(T("Battery: {0}", PowerText(power)));   // the battery's own flow, not the laptop's draw
         if (reading is not null)
         {
             if (reading.CpuTemperature is not null || reading.BatteryTemperature is not null)
-                text.Append('\n').Append(T("CPU {0}, battery {1}", Degrees(reading.CpuTemperature), Degrees(reading.BatteryTemperature)));
+                Add(T("CPU {0}, battery {1}", Degrees(reading.CpuTemperature), Degrees(reading.BatteryTemperature)));
             if (reading.Fan1Rpm is not null || reading.Fan2Rpm is not null)
-                AppendFans(text, reading);
+                AppendFans(Add, reading);
         }
-        if (text.Length > TooltipLimit)
-            text.Length = TooltipLimit;
         return text.ToString();
     }
 
@@ -91,20 +103,13 @@ internal static class StatusReport
     /// doesn't fit, the targets go; if the speeds alone don't fit either, the line goes
     /// (a number cut in half would be a wrong number). A target of 0 means none reported.
     /// </summary>
-    private static void AppendFans(StringBuilder text, SensorReading reading)
+    private static void AppendFans(Func<string, bool> add, SensorReading reading)
     {
         static string Fan(int? rpm, int? target) => (rpm?.ToString(CultureInfo.InvariantCulture) ?? "?") + (target is > 0 ? $"→{target}" : "");
-        var withTargets = "\n" + T("Fans: {0} / {1} RPM", Fan(reading.Fan1Rpm, reading.Fan1TargetRpm), Fan(reading.Fan2Rpm, reading.Fan2TargetRpm));
-        var plain = "\n" + T("Fans: {0} / {1} RPM", Fan(reading.Fan1Rpm, null), Fan(reading.Fan2Rpm, null));
         var hasTargets = reading.Fan1TargetRpm is > 0 || reading.Fan2TargetRpm is > 0;
-        foreach (var line in hasTargets ? new[] { withTargets, plain } : [plain])
-        {
-            if (text.Length + line.Length <= TooltipLimit)
-            {
-                text.Append(line);
-                return;
-            }
-        }
+        if (hasTargets && add(T("Fans: {0} / {1} RPM", Fan(reading.Fan1Rpm, reading.Fan1TargetRpm), Fan(reading.Fan2Rpm, reading.Fan2TargetRpm))))
+            return;
+        add(T("Fans: {0} / {1} RPM", Fan(reading.Fan1Rpm, null), Fan(reading.Fan2Rpm, null)));
     }
 
     private static SensorReading? Fresh() => Sensors.Latest is { IsFresh: true } reading ? reading : null;

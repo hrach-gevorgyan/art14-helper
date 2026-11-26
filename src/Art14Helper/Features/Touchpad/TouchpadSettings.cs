@@ -133,7 +133,7 @@ internal static class TouchpadSettingsMenu
         catch (Exception exception)
         {
             Log.Error("Touchpad setting not changed", exception);
-            CommonDialogs.Message(User32.GetActiveWindow(), exception.Message, AppInfo.Name, CommonDialogs.Icon.Error);
+            CommonDialogs.Message(User32.GetActiveWindow(), ShownMessage(exception), AppInfo.Name, CommonDialogs.Icon.Error);
         }
     }
 }

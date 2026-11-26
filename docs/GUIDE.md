@@ -13,6 +13,14 @@ Space, Esc). Options that don't apply right now are grayed out with the reason.
 **Right-click** the icon for the same choices as a quick menu. **Hover** over it for
 temperatures, fan speeds and battery power.
 
+**Language:** the app speaks English, Russian and Simplified Chinese. It follows Windows'
+display language; System > Language picks one yourself, and the change applies at once. The
+log and Copy diagnostics stay in English, so bug reports can be read by anyone.
+
+**Limited mode:** the app needs admin rights for the BIOS. If it ever runs without them (for
+example after a failed update), it says so with a popup and a first line in the tooltip,
+and **Restart with admin rights** at the top of the tray menu fixes it in one click.
+
 ## Popups
 
 ![Popups in dark and light mode](images/popups.png)
@@ -23,11 +31,15 @@ didn't just do yourself and can't see otherwise:
 - a key or gesture: F7, F8, Fn+Space (with a level bar), the touchpad key, the knuckle
   screenshot;
 - something that changed by itself: the charger plugged in (charge level, time to the
-  limit or why it isn't charging), Auto switching the refresh rate, keep awake running out;
+  limit or why it isn't charging), Auto switching the refresh rate, keep awake running out,
+  the magnetic camera taken off or put back (with a reminder when F8 privacy is on), limited
+  mode, and a new version when the update notice is on;
 - a choice that didn't apply, with the reason (for example "Turn off HDR first");
 - a result you can't see: diagnostics copied, settings restored.
 
 Choices you make in the menu or the settings window show no popup: you can see them there.
+Popups rise gently into place like Windows' own; with Windows' animation effects turned off
+(Settings > Accessibility > Visual effects) they appear without motion.
 
 ## Install, update, uninstall
 
@@ -43,6 +55,10 @@ app. It removes the program, its autostart task, Start menu entry and log, puts 
 back to native colors with HONOR's own profile, and undoes the lid settings the app
 changed. You can keep your settings for a reinstall, and choose to turn the charge limit
 off; other BIOS settings stay as they are.
+
+**Scripts and package managers:** `Art14Helper.exe --install --silent` installs or updates
+with the default choices and no window, and `"C:\Program Files\Art14Helper\Art14Helper.exe"
+--uninstall --silent` removes it; the exit code is 0 on success.
 
 The app needs admin rights for the BIOS, so it lives in Program Files, where only
 administrators can write: no other program can swap the exe that Windows starts elevated.
@@ -98,6 +114,17 @@ The exact numbers are in the tooltip and on the Charge limit page.
 **Windows asks for my password when the screen comes back in Remote mode.** That's
 Windows' sign-in setting (Settings > Accounts > Sign-in options); everything kept running
 meanwhile.
+
+**The app is in the wrong language.** It follows Windows' display language. Pick another in
+System > Language; English is used for languages the app doesn't have yet.
+
+**Fans and temperatures are missing, and the brightness flyout doesn't show.** The app is
+running without admin rights (limited mode); the tooltip says so. Choose **Restart with admin
+rights** at the top of the tray menu.
+
+**The app closed by itself.** The log (System > Open log) says why each run ended: the tray
+menu, an update, Windows shutting down, or, at the next start, that the previous run ended
+without closing (Task Manager, a crash, power loss).
 
 **Something doesn't work.** System > Copy diagnostics, and paste it into your report. It
 contains versions, what the app found and the last log lines, never the serial number.

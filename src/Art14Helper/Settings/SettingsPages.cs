@@ -299,12 +299,13 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         var product = Read("SystemProductName");
         var version = Read("BIOSVersion");
         var details = string.Join(" · ", new[] { product, version is null ? null : $"BIOS {version}" }.OfType<string>());
-        return (_laptop = (Read("SystemFamily") ?? product ?? T("Laptop"), details)).Value;
+        return (_laptop = (Read("SystemFamily") ?? product ?? N("Laptop"), details)).Value;
     }
 
     internal static DeviceState Device()
     {
         var (name, details) = Laptop();
+        name = T(name);   // only the fallback "Laptop" has a translation; it's cached in English
         var status = StatusReport.ForHomePage();
         var battery = PowerSource.Battery;
         var line = battery switch
@@ -330,9 +331,9 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         var status = StatusReport.ForHomePage();
         var fans = (status.Fan1Rpm, status.Fan2Rpm) switch
         {
-            ({ } first, { } second) when first > 0 || second > 0 => $"{first} / {second} rpm",
+            ({ } first, { } second) when first > 0 || second > 0 => T("{0} / {1} rpm", first, second),
             (0, _) => T("Off"),
-            ({ } first, _) => $"{first} rpm",
+            ({ } first, _) => T("{0} rpm", first),
             _ => "—"
         };
         return
@@ -390,7 +391,7 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
     {
         if (StatusReport.ForHomePage().ChargeLimitOff)
             return T("The charge limit is off. If the laptop is plugged in most of the day, Home (40–70%) is kinder to the battery.");
-        if (!PowerSource.IsPluggedIn && !RefreshRate.IsAuto && RefreshRate.Current > 60)
+        if (!PowerSource.IsPluggedIn && !RefreshRate.IsAuto && RefreshRate.Highest > 60 && RefreshRate.Current == RefreshRate.Highest)
             return T("You're on battery at the highest refresh rate. Auto drops to 60 Hz on battery and saves power.");
         string[] tips =
         [

@@ -18,6 +18,13 @@ All notable changes to Art14 Helper. The format follows
 
 ### Fixed
 - The switch's On/Off label is as wide as the word needs.
+- The tray tooltip leaves out whole lines when it's full, instead of cutting one mid-number.
+- Error messages stay in English in the log and Copy diagnostics, and show translated in
+  dialogs, BIOS errors included.
+- Restoring a settings backup shows its language at once; the Drivers page status follows a
+  language change; a copy started through UAC speaks the same language as the app.
+- The home page's refresh-rate tip shows only at the panel's highest rate.
+- Many Russian and Chinese wordings polished after a native-speaker style review.
 
 ## [1.2.0] - 2026-11-27
 

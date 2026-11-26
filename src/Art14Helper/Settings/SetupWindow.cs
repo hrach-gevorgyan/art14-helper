@@ -235,7 +235,7 @@ internal sealed class SetupWindow : PaintedWindow
         catch (Exception exception)
         {
             Log.Error("Setup failed", exception);
-            ShowStatus(T("That didn't work: {0}", exception.Message), FluentTheme.Danger);
+            ShowStatus(T("That didn't work: {0}", ShownMessage(exception)), FluentTheme.Danger);
         }
         _working = false;
         _progress.Running = false;

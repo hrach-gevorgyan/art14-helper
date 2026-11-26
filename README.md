@@ -5,7 +5,7 @@
 # Art14 Helper
 
 **A small, fast replacement for HONOR PC Manager on the HONOR MagicBook Art 14.**<br>
-One 10 MB exe. No services, no telemetry, no ads, no CPU while idle.
+One 10 MB exe in English, Russian and Chinese. No services, no telemetry, no ads, no CPU while idle.
 
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-0b7a6b?style=flat-square)](LICENSE)
 ![Windows 11](https://img.shields.io/badge/Windows-11-0078d4?style=flat-square)
@@ -20,6 +20,18 @@ One 10 MB exe. No services, no telemetry, no ads, no CPU while idle.
 > [!NOTE]
 > Unofficial. Not made, endorsed or supported by HONOR. HONOR and MagicBook are trademarks
 > of their owner, used here only to say which laptop this works with. Use at your own risk.
+
+## At a glance
+
+- **Tiny and quiet:** one native exe, about 11 MB of memory, no CPU at rest, no services.
+- **Private:** no telemetry or accounts. The only network use is the driver check and an
+  update notice you can turn on.
+- **Speaks your language:** English, Russian and Simplified Chinese, following Windows.
+- **Looks after itself:** it notices when it runs without admin rights and fixes that in one
+  click, retries the BIOS after boot or wake, and logs why it ever closed.
+- **Accessible:** full keyboard control, a tray menu screen readers can read, and popups that
+  follow Windows' animation setting. See [Accessibility](ACCESSIBILITY.md).
+- **Tested:** about 280 unit tests, and a self-test of the built exe on every change.
 
 ## Why
 
@@ -42,6 +54,8 @@ memory and no CPU at rest.
 - Fn lock: standard F-keys or media keys.
 - F7 mutes the microphone for every app and lights its LED; F8 is a camera privacy switch
   that works even during a call; F10 and F11 open an app of your choice.
+- A popup when the magnetic camera is taken off or put back, with a reminder when F8
+  privacy is still on.
 
 **Touchpad**
 - Vibration strength and press sensitivity.
@@ -64,6 +78,9 @@ memory and no CPU at rest.
 - BIOS and driver updates from HONOR's catalog, with every download checked.
 - Driver backup and restore for a clean Windows reinstall, settings backup, and one-click
   diagnostics for bug reports.
+- An optional weekly notice when a new version is out (off by default; it never downloads
+  anything).
+- Silent install and uninstall for scripts and package managers.
 
 **Languages**
 - English, Russian and Simplified Chinese, following Windows' display language or your choice
@@ -79,13 +96,15 @@ Popups look and move like Windows 11's own volume flyout. They appear only when 
 them: for a key or gesture (F7, F8, Fn+Space, the touchpad key, the knuckle screenshot),
 for something that changed by itself (the charger plugged in, the camera taken off or put back, Auto switching the refresh
 rate, keep awake running out), or when a choice couldn't be applied. A choice you just made
-in the menu or the settings window shows no popup: you can already see it.
+in the menu or the settings window shows no popup: you can already see it. With Windows'
+animation effects turned off, popups appear without motion.
 
 ## Install
 
 Requires the HONOR MagicBook Art 14 (2024) with Intel Core Ultra and Windows 11.
 
-1. [Download](../../releases/latest) `Art14Helper.exe` and run it.
+1. [Download](../../releases/latest) `Art14Helper.exe` and run it. (winget: submitted as
+   `HrachGevorgyan.Art14Helper`, waiting for Microsoft's review.)
 2. Keep **Start with Windows** and **Apply recommended settings** on, click **Install** and
    accept the UAC prompt.
 

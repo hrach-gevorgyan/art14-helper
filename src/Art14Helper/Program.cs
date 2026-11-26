@@ -21,6 +21,7 @@ internal static class Program
         LogUnexpectedErrors();
         if (Privileged.IsElevated && args is [])
             Log.Info($"Started with admin rights; protections: {hardening}");
+        L10n.TakeLanguageArgument(args);   // a one-job copy started through UAC speaks its starter's language
         var value = args is [_, var second, ..] ? second : string.Empty;
         return args switch
         {
@@ -83,7 +84,7 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            CommonDialogs.Message(IntPtr.Zero, exception.Message, AppInfo.Name, CommonDialogs.Icon.Error);
+            CommonDialogs.Message(IntPtr.Zero, ShownMessage(exception), AppInfo.Name, CommonDialogs.Icon.Error);
             return 1;
         }
     }

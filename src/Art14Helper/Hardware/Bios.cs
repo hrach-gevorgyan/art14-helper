@@ -1,8 +1,7 @@
 namespace Art14Helper;
 
 /// <summary>The BIOS received a command and refused it; <see cref="Status"/> is its answer code.</summary>
-internal sealed class BiosRefusedException(ulong command, byte status)
-    : InvalidOperationException($"The BIOS refused command 0x{command:X} (code {status}).")
+internal sealed class BiosRefusedException(byte status, string message) : InvalidOperationException(message)
 {
     internal byte Status { get; } = status;
 }
@@ -63,7 +62,7 @@ internal static class Bios
     internal static byte[] Run(ulong command)
     {
         if (!Privileged.IsElevated)
-            throw new InvalidOperationException("Administrator rights are needed to talk to the HONOR BIOS.");
+            throw Shown(m => new InvalidOperationException(m), N("Administrator rights are needed to talk to the HONOR BIOS."));
         lock (Gate)
         {
             byte[] reply;
@@ -86,9 +85,9 @@ internal static class Bios
                 }
             }
             if (reply.Length == 0)
-                throw new InvalidOperationException($"The BIOS gave no answer to command 0x{command:X}.");
+                throw Shown(m => new InvalidOperationException(m), N("The BIOS gave no answer to command 0x{0:X}."), command);
             if (reply[0] != 0)
-                throw new BiosRefusedException(command, reply[0]);
+                throw Shown(m => new BiosRefusedException(reply[0], m), N("The BIOS refused command 0x{0:X} (code {1})."), command, reply[0]);
             return reply;
         }
     }
@@ -137,7 +136,7 @@ internal static class Bios
     {
         var now = Environment.TickCount64;
         if (_method is null && !ShouldSearch(_missingSince, now))
-            throw new InvalidOperationException("The HONOR BIOS interface isn't available.");
+            throw Shown(m => new InvalidOperationException(m), N("The HONOR BIOS interface isn't available."));
         _method ??= WmiMethod.Find(@"\\.\root\wmi", "OemWMIMethod", "OemWMIfun", HonorInstance);
         if (_method is null)
         {
@@ -147,7 +146,7 @@ internal static class Bios
                 _missingLogged = true;
                 Log.Error($"HONOR BIOS interface (OemWMIMethod) not found; looking again every {RetryMissingAfterMs / 1000} s when needed");
             }
-            throw new InvalidOperationException("The HONOR BIOS interface isn't available.");
+            throw Shown(m => new InvalidOperationException(m), N("The HONOR BIOS interface isn't available."));
         }
         if (_missingSince is not null)
         {
