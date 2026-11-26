@@ -13,6 +13,16 @@ internal sealed record SettingsPage(string Title, string Glyph, string? Descript
 /// </summary>
 internal sealed class SettingsPages(Action<Action> run, Action<string> open, Func<bool> startsWithWindows, Action toggleStartup, DriversPage drivers)
 {
+    // The three pages of the settings window's own, by their English names (their identity);
+    // the window shows them through T(). Marked here so the tables have them.
+    internal static readonly string[] OwnPageTitles = [N("Drivers"), N("System")];
+
+    /// <summary>
+    /// A page's title as shown. Home has a context: "Home" alone is the charge limit preset,
+    /// which other languages name differently from the start page.
+    /// </summary>
+    internal static string Shown(string title) => title == Home ? T("Home§page") : T(title);
+
     internal const string Home = "Home";
     internal const string Drivers = "Drivers";
     private const string System = "System";
@@ -27,15 +37,19 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         {
             var children = node.Children!.Nodes;
             pages.Add(new SettingsPage(node.Text, GlyphFor(node.Text), node.Tooltip,
-                node.Text == "Charge limit" ? () => [.. Sections(children), BatterySection()] : () => Sections(children)));
+                node.Text == T("Charge limit") ? () => [.. Sections(children), BatterySection()] : () => Sections(children)));
         }
-        pages.Add(new SettingsPage(Drivers, "", "BIOS and driver updates from HONOR, and a driver backup.",
+        pages.Add(new SettingsPage(Drivers, "", T("BIOS and driver updates from HONOR, and a driver backup."),
             () => drivers.Sections().Select(section => new SettingsSection(section.Title, section.Rows)).ToList()));
-        pages.Add(new SettingsPage(System, "", "Touchscreen, startup and app info.", SystemSections));
+        pages.Add(new SettingsPage(System, "", T("Touchscreen, startup and app info."), SystemSections));
         return pages;
     }
 
-    private static string GlyphFor(string page) => page switch
+    private static readonly string[] PageNames = ["Charge limit", "Keyboard", "Fn lock", "F10 / F11 keys", "Touchpad", "Sound", "Display", "Power mode", "Keep awake"];
+
+    private static string GlyphFor(string page) => GlyphForEnglish(PageNames.FirstOrDefault(name => T(name) == page) ?? page);
+
+    private static string GlyphForEnglish(string page) => page switch
     {
         "Charge limit" => "",
         "Keyboard" => "",
@@ -109,9 +123,9 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
     private List<SettingsSection> SystemSections()
     {
         var sections = new List<SettingsSection>();
-        var device = _menu.Nodes.Where(node => node.Kind == MenuNodeKind.Item && !node.IsHeader && node.Text != Drivers).ToList();
+        var device = _menu.Nodes.Where(node => node.Kind == MenuNodeKind.Item && !node.IsHeader && node.Text != T(Drivers)).ToList();
         if (device.Count > 0)
-            sections.Add(new SettingsSection("Device", device.Select(node => new RowSpec
+            sections.Add(new SettingsSection(T("Device"), device.Select(node => new RowSpec
             {
                 Text = node.Text,
                 Secondary = node.Tooltip,
@@ -121,55 +135,85 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
                 OnClick = node.Action is { } action ? () => run(action) : null
             }).ToList()));
 
-        sections.Add(new SettingsSection("App",
+        sections.Add(new SettingsSection(T("Language"), LanguageRows()));
+
+        sections.Add(new SettingsSection(T("App"),
         [
             new RowSpec
             {
-                Text = "Start with Windows",
-                Secondary = "Opens in the tray when you sign in, with admin rights and no UAC prompt.",
+                Text = T("Start with Windows"),
+                Secondary = T("Opens in the tray when you sign in, with admin rights and no UAC prompt."),
                 Glyph = "",
                 Kind = RowKind.Toggle,
                 Checked = startsWithWindows(),
                 OnClick = () => run(toggleStartup)
             },
-            new RowSpec { Text = "Back up settings", Secondary = "Saves every choice to a small file, for a Windows reinstall.", Glyph = "", Kind = RowKind.Action, OnClick = () => run(SettingsBackup.Export) },
-            new RowSpec { Text = "Restore settings", Secondary = "Reads such a file and applies its choices to the laptop.", Glyph = "", Kind = RowKind.Action, OnClick = () => run(SettingsBackup.Import) },
-            new RowSpec { Text = "Open log", Secondary = "A record of what the app did, for finding problems.", Glyph = "", Kind = RowKind.Action, OnClick = OpenLog },
+            new RowSpec { Text = T("Back up settings"), Secondary = T("Saves every choice to a small file, for a Windows reinstall."), Glyph = "", Kind = RowKind.Action, OnClick = () => run(SettingsBackup.Export) },
+            new RowSpec { Text = T("Restore settings"), Secondary = T("Reads such a file and applies its choices to the laptop."), Glyph = "", Kind = RowKind.Action, OnClick = () => run(SettingsBackup.Import) },
+            new RowSpec { Text = T("Open log"), Secondary = T("A record of what the app did, for finding problems."), Glyph = "", Kind = RowKind.Action, OnClick = OpenLog },
             new RowSpec
             {
-                Text = "Copy diagnostics",
-                Secondary = "Versions, laptop, what works, settings and the end of the log, for a bug report. No serial number; nothing is sent.",
+                Text = T("Copy diagnostics"),
+                Secondary = T("Versions, laptop, what works, settings and the end of the log, for a bug report. No serial number; nothing is sent."),
                 Glyph = "",
                 Kind = RowKind.Action,
                 OnClick = Diagnostics.Copy
             },
             new RowSpec
             {
-                Text = "Tell me about new versions",
-                Secondary = "Once a week, asks GitHub whether a newer version is out. Sends only the app's version and downloads nothing.",
+                Text = T("Tell me about new versions"),
+                Secondary = T("Once a week, asks GitHub whether a newer version is out. Sends only the app's version and downloads nothing."),
                 Glyph = "",
                 Kind = RowKind.Toggle,
                 Checked = AppSettings.UpdateCheck,
                 OnClick = () => run(UpdateCheck.Toggle)
             },
             .. UpdateCheck.Available is { } release
-                ? new[] { new RowSpec { Text = $"Version {release.Version.ToString(3)} is out", Secondary = "Opens the release page on GitHub: download the new exe there and run it to update.", Glyph = "", Kind = RowKind.Action, OnClick = UpdateCheck.OpenPage } }
+                ? new[] { new RowSpec { Text = T("Version {0} is out", release.Version.ToString(3)), Secondary = T("Opens the release page on GitHub: download the new exe there and run it to update."), Glyph = "", Kind = RowKind.Action, OnClick = UpdateCheck.OpenPage } }
                 : [],
-            new RowSpec { Text = "Version", Glyph = "", Value = AppInfo.Version, Kind = RowKind.Info }
+            new RowSpec { Text = T("Version"), Glyph = "", Value = AppInfo.Version, Kind = RowKind.Info }
         ]));
-        sections.Add(new SettingsSection("About", [Info("Unofficial software", "", AppInfo.Disclaimer), Info("Credits", "", AppInfo.Credits), Info("License", "", AppInfo.License)]));
+        sections.Add(new SettingsSection(T("About"), [Info(T("Unofficial software"), "", AppInfo.Disclaimer), Info(T("Credits"), "", AppInfo.Credits), Info(T("License"), "", AppInfo.License)]));
         sections.Add(new SettingsSection(null,
         [
             new RowSpec
             {
-                Text = "Uninstall",
-                Secondary = "Removes the app with its autostart and settings. You confirm first.",
+                Text = T("Uninstall"),
+                Secondary = T("Removes the app with its autostart and settings. You confirm first."),
                 Glyph = "",
                 Kind = RowKind.Action,
                 OnClick = StartUninstall
             }
         ]));
         return sections;
+    }
+
+    /// <summary>
+    /// The language choice. Each language is named in itself (never translated), so it can be
+    /// found whatever language the app shows now. A choice applies at once.
+    /// </summary>
+    private List<RowSpec> LanguageRows()
+    {
+        var chosen = AppSettings.Language;
+        RowSpec Choice(AppLanguage language, string name, string? secondary = null) => new()
+        {
+            Text = name,
+            Secondary = secondary,
+            Kind = RowKind.Choice,
+            Checked = chosen == language,
+            OnClick = () => run(() =>
+            {
+                AppSettings.Language = language;
+                L10n.Reload();
+            })
+        };
+        return
+        [
+            Choice(AppLanguage.Auto, T("Same as Windows"), T("Russian or Simplified Chinese when Windows uses it, otherwise English.")),
+            Choice(AppLanguage.English, "English"),
+            Choice(AppLanguage.Russian, "Русский"),
+            Choice(AppLanguage.ChineseSimplified, "简体中文")
+        ];
     }
 
     // ---- Home ----
@@ -208,7 +252,7 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
     /// <summary>"Home · 40–70%" → "Home"; "Auto: max on charger…" → "Auto".</summary>
     internal static string ShortName(string text)
     {
-        var cut = text.IndexOfAny(['(', ':', '·']);
+        var cut = text.IndexOfAny(['(', ':', '·', '（', '：']);   // full-width forms for Chinese
         return (cut > 0 ? text[..cut] : text).Trim();
     }
 
@@ -228,19 +272,19 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
             tiles.Add(new QuickSetting(glyph, title, value ?? (current is null ? "—" : ShortName(current.Text)), flips, click, hint));
         }
 
-        Add("Keep awake", null, "", "Keep awake", "Opens Keep awake.",
+        Add(T("Keep awake"), null, "", T("Keep awake"), T("Opens Keep awake."),
             // When it ends says more than the duration picked.
-            value: RemoteMode.IsOn ? "Remote mode" : KeepAwake.Until is { } until ? (until == DateTime.MaxValue ? "On" : $"Until {until:t}") : null);
-        Add("Keyboard", "Brightness", "", "Keyboard light", "Opens Keyboard. Fn+Space changes it too.");
-        Add("Display", "Refresh rate", "", "Refresh rate", "Opens Display.");
-        Add("Display", "Color mode", "", "Color mode", "Opens Display.");
-        Add("Power mode", null, "", "Power mode", "Opens Power mode.");
-        Add("Fn lock", null, "", "Top row keys", "Click to flip between F-keys and media keys.");
-        Add("Sound", null, "", "Sound", "Click to flip between spatial and stereo.");
+            value: RemoteMode.IsOn ? T("Remote mode") : KeepAwake.Until is { } until ? (until == DateTime.MaxValue ? T("On") : T("Until {0:t}", until)) : null);
+        Add(T("Keyboard"), T("Brightness"), "", T("Keyboard light"), T("Opens Keyboard. Fn+Space changes it too."));
+        Add(T("Display"), T("Refresh rate"), "", T("Refresh rate"), T("Opens Display."));
+        Add(T("Display"), T("Color mode"), "", T("Color mode"), T("Opens Display."));
+        Add(T("Power mode"), null, "", T("Power mode"), T("Opens Power mode."));
+        Add(T("Fn lock"), null, "", T("Top row keys"), T("Click to flip between F-keys and media keys."));
+        Add(T("Sound"), null, "", T("Sound"), T("Click to flip between spatial and stereo."));
 
-        if (_menu.Nodes.FirstOrDefault(node => node is { Kind: MenuNodeKind.Item, Toggle: true, Text: "Touchscreen" }) is { Action: { } toggle } touch)
-            tiles.Add(new QuickSetting("", "Touchscreen", touch.Checked ? "On" : "Off", true, () => run(toggle),
-                "Click to turn the touchscreen on or off."));
+        if (_menu.Nodes.FirstOrDefault(node => node is { Kind: MenuNodeKind.Item, Toggle: true, Text: var touchText } && touchText == T("Touchscreen")) is { Action: { } toggle } touch)
+            tiles.Add(new QuickSetting("", T("Touchscreen"), touch.Checked ? T("On") : T("Off"), true, () => run(toggle),
+                T("Click to turn the touchscreen on or off.")));
         return tiles;
     }
 
@@ -255,7 +299,7 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         var product = Read("SystemProductName");
         var version = Read("BIOSVersion");
         var details = string.Join(" · ", new[] { product, version is null ? null : $"BIOS {version}" }.OfType<string>());
-        return (_laptop = (Read("SystemFamily") ?? product ?? "Laptop", details)).Value;
+        return (_laptop = (Read("SystemFamily") ?? product ?? T("Laptop"), details)).Value;
     }
 
     internal static DeviceState Device()
@@ -265,19 +309,18 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         var battery = PowerSource.Battery;
         var line = battery switch
         {
-            { Charging: true } => "Charging",
-            { PluggedIn: true } => "Plugged in, not charging",
-            { TimeLeft: { TotalHours: >= 1 } left } => $"On battery · {(int)left.TotalHours} h {left.Minutes} min left",
-            { TimeLeft: { } left } => $"On battery · {left.Minutes} min left",
-            _ => "On battery"
+            { Charging: true } => T("Charging"),
+            { PluggedIn: true } => T("Plugged in, not charging"),
+            { TimeLeft: { TotalHours: >= 1 } left } => T("On battery · {0} h {1} min left", (int)left.TotalHours, left.Minutes),
+            { TimeLeft: { } left } => T("On battery · {0} min left", left.Minutes),
+            _ => T("On battery")
         };
         if (status.BatteryWatts is { } watts && Math.Abs(watts) >= 0.05)
-            line += $" · {Math.Abs(watts):0.0} W";
-        var limit = AppSettings.ChargeOnce ? "Charging to 100% once, then the limit" : status.ChargeLimit switch
+            line += " · " + T("{0:0.0} W", Math.Abs(watts));
+        var limit = AppSettings.ChargeOnce ? T("Charging to 100% once, then the limit") : status.ChargeLimitOff ? T("No charge limit: charges to 100%") : status.ChargeLimit switch
         {
-            "Off" => "No charge limit: charges to 100%",
-            "—" => "Charge limit not read yet",
-            var range => $"Charge limit {range}"
+            "—" => T("Charge limit not read yet"),
+            var range => T("Charge limit {0}", range)
         };
         return new DeviceState(name, details, battery.Percent, line, limit, battery.Charging);
     }
@@ -288,17 +331,17 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         var fans = (status.Fan1Rpm, status.Fan2Rpm) switch
         {
             ({ } first, { } second) when first > 0 || second > 0 => $"{first} / {second} rpm",
-            (0, _) => "Off",
+            (0, _) => T("Off"),
             ({ } first, _) => $"{first} rpm",
             _ => "—"
         };
         return
         [
-            new StatusTile("", "Processor", status.CpuTemperature is { } cpu ? $"{cpu}°C" : "—"),
-            new StatusTile("", "Battery", status.BatteryTemperature is { } battery ? $"{battery}°C" : "—"),
-            new StatusTile("", "Fans", fans),
+            new StatusTile("", T("Processor"), status.CpuTemperature is { } cpu ? $"{cpu}°C" : "—"),
+            new StatusTile("", T("Battery"), status.BatteryTemperature is { } battery ? $"{battery}°C" : "—"),
+            new StatusTile("", T("Fans"), fans),
             .. Health() is { } health
-                ? [new StatusTile("", "Battery health", health.Shown, HealthDetail(health))]
+                ? [new StatusTile("", T("Battery health§tile"), health.Shown, HealthDetail(health))]
                 : Array.Empty<StatusTile>()
         ];
     }
@@ -310,7 +353,7 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         if (Health() is { } health)
             rows.Add(new RowSpec
             {
-                Text = "Battery health",
+                Text = T("Battery health"),
                 Secondary = HealthDetail(health),
                 Value = health.Shown,
                 Glyph = "",
@@ -318,18 +361,18 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
             });
         rows.Add(new RowSpec
         {
-            Text = "Battery report",
-            Secondary = "Windows' detailed history: capacity over time, recent use and battery life, in the browser.",
+            Text = T("Battery report"),
+            Secondary = T("Windows' detailed history: capacity over time, recent use and battery life, in the browser."),
             Glyph = "",
             Kind = RowKind.Action,
             OnClick = BatteryReport.Open
         });
-        return new SettingsSection("Battery", rows);
+        return new SettingsSection(T("Battery"), rows);
     }
 
     internal static string HealthDetail(BatteryHealth health)
-        => $"{health.FullMilliwattHours / 1000.0:0.0} Wh at full charge of {health.DesignedMilliwattHours / 1000.0:0.0} Wh designed"
-           + (health.Cycles is { } cycles ? $"; {cycles} charge cycles" : "");
+        => T("{0:0.0} Wh at full charge of {1:0.0} Wh designed", health.FullMilliwattHours / 1000.0, health.DesignedMilliwattHours / 1000.0)
+           + (health.Cycles is { } cycles ? T("; {0} charge cycles", cycles) : "");
 
     private static (BatteryHealth? Health, long At) _health = (null, long.MinValue / 2);
 
@@ -345,18 +388,17 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
     /// <summary>One line on Home: advice when the current state calls for it, otherwise a tip that changes daily.</summary>
     private string Tip()
     {
-        if (StatusReport.ForHomePage().ChargeLimit == "Off")
-            return "The charge limit is off. If the laptop is plugged in most of the day, Home (40–70%) is kinder to the battery.";
-        var rate = Group("Display", "Refresh rate")?.FirstOrDefault(choice => choice.Checked)?.Text;
-        if (!PowerSource.IsPluggedIn && rate is not null && rate != "60 Hz" && !rate.StartsWith("Auto", StringComparison.Ordinal))
-            return "You're on battery at the highest refresh rate. Auto drops to 60 Hz on battery and saves power.";
+        if (StatusReport.ForHomePage().ChargeLimitOff)
+            return T("The charge limit is off. If the laptop is plugged in most of the day, Home (40–70%) is kinder to the battery.");
+        if (!PowerSource.IsPluggedIn && !RefreshRate.IsAuto && RefreshRate.Current > 60)
+            return T("You're on battery at the highest refresh rate. Auto drops to 60 Hz on battery and saves power.");
         string[] tips =
         [
-            "Left-click the tray icon for this window, right-click it for the quick menu.",
-            "Going to reinstall Windows? Back up your drivers on the Drivers page first.",
-            "On Auto, the keyboard light follows the room's light, smoothly and at no extra battery cost.",
-            "sRGB shows websites and photos as intended; P3 is wider, for photo and video work.",
-            "Knock twice on the touchpad with a knuckle to save a screenshot to Pictures\\Screenshots."
+            T("Left-click the tray icon for this window, right-click it for the quick menu."),
+            T("Going to reinstall Windows? Back up your drivers on the Drivers page first."),
+            T("On Auto, the keyboard light follows the room's light, smoothly and at no extra battery cost."),
+            T("sRGB shows websites and photos as intended; P3 is wider, for photo and video work."),
+            T("Knock twice on the touchpad with a knuckle to save a screenshot to Pictures\\Screenshots.")
         ];
         return tips[DateTime.Now.DayOfYear % tips.Length];
     }

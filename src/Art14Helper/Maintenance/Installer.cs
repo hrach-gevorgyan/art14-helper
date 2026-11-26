@@ -97,7 +97,7 @@ internal static class Installer
         {
             if (silent)
                 return RunElevatedAndWait("--install", SilentSwitch);
-            CommonDialogs.Message(IntPtr.Zero, "Installing needs administrator rights.", Title, CommonDialogs.Icon.Error);
+            CommonDialogs.Message(IntPtr.Zero, T("Installing needs administrator rights."), Title, CommonDialogs.Icon.Error);
             return 1;
         }
 
@@ -118,22 +118,22 @@ internal static class Installer
     private static string InstallCore(SetupWindow.Choices choices, bool update, Action<string> progress, bool detached = false)
     {
         var source = Environment.ProcessPath
-            ?? throw new InvalidOperationException("Could not determine the path to this exe.");
+            ?? throw new InvalidOperationException(T("Could not determine the path to this exe."));
         // Read through a handle that stays open: without write or delete sharing, nobody can
         // rename or replace this exe (it may sit in a folder the user can write to) between
         // starting with admin rights and the copy into Program Files.
         using var sourceFile = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-        progress("Closing the running copy…");
+        progress(T("Closing the running copy…"));
         StopOtherInstances();
         Directory.CreateDirectory(InstallDirectory);
         RemoveOldCopies();
 
-        progress("Copying files…");
+        progress(T("Copying files…"));
         if (!string.Equals(Path.GetFullPath(source), Path.GetFullPath(InstalledExe), StringComparison.OrdinalIgnoreCase))
             CopyWithRetry(sourceFile, InstalledExe);
 
-        progress("Setting up…");
+        progress(T("Setting up…"));
         if (!update)
         {
             AppSettings.SetupStartWithWindows = choices.StartWithWindows;
@@ -152,15 +152,15 @@ internal static class Installer
         CreateStartMenuShortcut();
         Log.Info("Installed to " + InstalledExe);
 
-        progress("Starting…");
+        progress(T("Starting…"));
         // Normally started directly (inherits this elevated process), not through the logon
         // task: the task may still count the copy stopped a moment ago as running and would
         // ignore a new start. Detached, the task goes first; if it doesn't start, directly.
         if (!detached || !Autostart.TryStartNow(InstalledExe))
             Process.Start(new ProcessStartInfo(InstalledExe) { UseShellExecute = true })?.Dispose();
         return update
-            ? $"{AppInfo.Name} is updated and running in the tray."
-            : $"{AppInfo.Name} is installed and running in the tray. Left-click its icon to open it; it's also in the Start menu.";
+            ? T("{0} is updated and running in the tray.", AppInfo.Name)
+            : T("{0} is installed and running in the tray. Left-click its icon to open it; it's also in the Start menu.", AppInfo.Name);
     }
 
     /// <summary>
@@ -369,13 +369,13 @@ internal static class Installer
 
     private static string UninstallCore(SetupWindow.Choices choices, Action<string> progress)
     {
-        progress("Closing the app…");
+        progress(T("Closing the app…"));
         StopOtherInstances();
-        progress("Removing autostart and shortcuts…");
+        progress(T("Removing autostart and shortcuts…"));
         Autostart.SetEnabled(false);
         TryRun(() => File.Delete(StartMenuShortcut));
         TryRun(() => Microsoft.Win32.Registry.LocalMachine.DeleteSubKeyTree(UninstallKeyPath, false));
-        progress("Restoring the display colors…");
+        progress(T("Restoring the display colors…"));
         ColorModeService.ResetToNative();
         // The lid closes to sleep again where the app had changed it (remote mode or its switches).
         foreach (var battery in new[] { false, true })
@@ -384,14 +384,13 @@ internal static class Installer
         AppSettings.RemoteMode = false;
         if (choices.RemoveChargeLimit)
         {
-            progress("Turning off the charge limit…");
+            progress(T("Turning off the charge limit…"));
             TryRun(() => ChargeLimits.Apply(ChargeLimit.Off));
         }
         if (!choices.KeepSettings)
             TryRun(() => Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(@"Software\Art14Helper", false));
         Log.Info("Uninstalled");
-        return $"{AppInfo.Name} is removed. If you go back to HONOR PC Manager, turn its OSD service on again "
-            + "(Set-Service OSDServer -StartupType Automatic).";
+        return T("{0} is removed. If you go back to HONOR PC Manager, turn its OSD service on again (Set-Service OSDServer -StartupType Automatic).", AppInfo.Name);
     }
 
     private static void TryRun(Action action)

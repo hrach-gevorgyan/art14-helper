@@ -89,7 +89,8 @@ internal static partial class KeepAwake
         AppSettings.KeepAwakeUntil = until == DateTime.MaxValue ? UntilTurnedOff : until.ToUniversalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture);
         AppSettings.KeepAwakeMinutes = chosen is { } length ? (int)length.TotalMinutes : 0;
         Apply();
-        Log.Info($"Keep awake {(resumed ? "resumed after a restart" : "on")}, {Describe()}");   // no popup: the user chose it
+        // In English for the log; Describe() is in the user's language.
+        Log.Info($"Keep awake {(resumed ? "resumed after a restart" : "on")}, {(until == DateTime.MaxValue ? UntilTurnedOff : $"until {until:t}")}");   // no popup: the user chose it
         Changed?.Invoke();
     }
 
@@ -120,7 +121,7 @@ internal static partial class KeepAwake
         Apply();
         Log.Info(ended ? "Keep awake ended" : "Keep awake off");
         if (ended)   // the time ran out by itself: worth a word; turned off by the user: not
-            Popup.Show(PopupIcon.AwakeEnded, "Keep awake ended", "Sleep allowed");
+            Popup.Show(PopupIcon.AwakeEnded, T("Keep awake ended"), T("Sleep allowed"));
         Changed?.Invoke();
     }
 
@@ -175,9 +176,9 @@ internal static partial class KeepAwake
     }
 
     /// <summary>"until 15:30", "until turned off" or "off".</summary>
-    internal static string Describe() => Until is not { } until ? "off"
-        : until == DateTime.MaxValue ? "until turned off"
-        : $"until {until:t}";
+    internal static string Describe() => Until is not { } until ? T("off")
+        : until == DateTime.MaxValue ? T("until turned off")
+        : T("until {0:t}", until);
 
     private static void TapIfIdle()
     {
@@ -200,13 +201,14 @@ internal static partial class KeepAwake
 /// <summary>The keep awake choices for the tray menu and the settings window.</summary>
 internal static class KeepAwakeMenu
 {
+    // English here, translated where they're shown.
     private static readonly (TimeSpan? Duration, string Text)[] Durations =
     [
-        (TimeSpan.FromMinutes(30), "30 minutes"),
-        (TimeSpan.FromHours(1), "1 hour"),
-        (TimeSpan.FromHours(2), "2 hours"),
-        (TimeSpan.FromHours(4), "4 hours"),
-        (null, "Until turned off")
+        (TimeSpan.FromMinutes(30), N("30 minutes")),
+        (TimeSpan.FromHours(1), N("1 hour")),
+        (TimeSpan.FromHours(2), N("2 hours")),
+        (TimeSpan.FromHours(4), N("4 hours")),
+        (null, N("Until turned off"))
     ];
 
     internal static void Build(IMenuBuilder menu)
@@ -214,44 +216,43 @@ internal static class KeepAwakeMenu
         var remote = RemoteMode.IsOn;
         var awake = KeepAwake.IsOn;
 
-        menu.AddItem("Stay awake", null, enabled: false,
-            tooltip: remote ? "Remote mode keeps the laptop awake until you turn it off." : null);
+        menu.AddItem(T("Stay awake"), null, enabled: false,
+            tooltip: remote ? T("Remote mode keeps the laptop awake until you turn it off.") : null);
         // A duration or Off ends remote mode first: the user took over.
-        menu.AddItem("Off", () => { RemoteMode.Stop(); KeepAwake.Stop(); }, @checked: !awake,
-            tooltip: "The laptop sleeps as Windows' power settings say.");
+        menu.AddItem(T("Off"), () => { RemoteMode.Stop(); KeepAwake.Stop(); }, @checked: !awake,
+            tooltip: T("The laptop sleeps as Windows' power settings say."));
         foreach (var (duration, text) in Durations)
         {
             var current = awake && !remote && KeepAwake.Chosen == duration;
-            menu.AddItem(current && duration is not null ? $"{text} ({KeepAwake.Describe()})" : text,
+            menu.AddItem(current && duration is not null ? T("{0} ({1})", T(text), KeepAwake.Describe()) : T(text),
                 () => { RemoteMode.Stop(); KeepAwake.Start(duration); }, @checked: current);
         }
 
         // Only matter while awake; remote mode always lets the screen go off.
         menu.AddSeparator();
-        menu.AddItem("While awake", null, enabled: false,
-            tooltip: awake ? null : "Turn on keep awake above to use these.");
-        menu.AddItem("Keep the screen on", () => Flip(() => AppSettings.KeepScreenOn, on => AppSettings.KeepScreenOn = on),
+        menu.AddItem(T("While awake"), null, enabled: false,
+            tooltip: awake ? null : T("Turn on keep awake above to use these."));
+        menu.AddItem(T("Keep the screen on"), () => Flip(() => AppSettings.KeepScreenOn, on => AppSettings.KeepScreenOn = on),
             @checked: AppSettings.KeepScreenOn && !remote, toggle: true, enabled: awake && !remote,
-            tooltip: remote ? "Remote mode turns the screen off: nobody is looking at it."
-                : "Off: only the laptop stays awake; the screen still turns off and locks as usual.");
-        menu.AddItem("Stop apps showing you as away", () => Flip(() => AppSettings.KeepAppsActive, on => AppSettings.KeepAppsActive = on),
+            tooltip: remote ? T("Remote mode turns the screen off: nobody is looking at it.")
+                : T("Off: only the laptop stays awake; the screen still turns off and locks as usual."));
+        menu.AddItem(T("Stop apps showing you as away"), () => Flip(() => AppSettings.KeepAppsActive, on => AppSettings.KeepAppsActive = on),
             @checked: AppSettings.KeepAppsActive, toggle: true, enabled: awake,
-            tooltip: "A harmless F15 key press after a minute without input keeps Teams, Slack and others from showing you as away.");
+            tooltip: T("A harmless F15 key press after a minute without input keeps Teams, Slack and others from showing you as away."));
 
         menu.AddSeparator();
-        menu.AddItem("Away from the laptop", null, enabled: false);
-        menu.AddItem("Remote mode", () => { if (RemoteMode.IsOn) RemoteMode.Stop(); else RemoteMode.Start(); },
+        menu.AddItem(T("Away from the laptop"), null, enabled: false);
+        menu.AddItem(T("Remote mode"), () => { if (RemoteMode.IsOn) RemoteMode.Stop(); else RemoteMode.Start(); },
             @checked: remote, toggle: true,
-            tooltip: "For work that runs while you're away (a long task, a build, a download): stays awake, turns the screen off "
-                     + "and keeps running with the lid closed, on the charger and on battery. Off puts everything back.");
+            tooltip: T("For work that runs while you're away (a long task, a build, a download): stays awake, turns the screen off and keeps running with the lid closed, on the charger and on battery. Off puts everything back."));
 
         menu.AddSeparator();
-        menu.AddItem("When the lid closes", null, enabled: false,
-            tooltip: remote ? "Remote mode keeps the laptop running with the lid closed." : null);
+        menu.AddItem(T("When the lid closes"), null, enabled: false,
+            tooltip: remote ? T("Remote mode keeps the laptop running with the lid closed.") : null);
         var (charger, battery) = PowerSettings.GetLids();
-        AddLid(menu, onBattery: false, charger == LidAction.Nothing, "Keep running on the charger", "For an external monitor, or remote work at the desk.", !remote);
-        AddLid(menu, onBattery: true, battery == LidAction.Nothing, "Keep running on battery",
-            "Careful in a bag: a closed laptop that keeps running gets warm and drains the battery.", !remote);
+        AddLid(menu, onBattery: false, charger == LidAction.Nothing, T("Keep running on the charger"), T("For an external monitor, or remote work at the desk."), !remote);
+        AddLid(menu, onBattery: true, battery == LidAction.Nothing, T("Keep running on battery"),
+            T("Careful in a bag: a closed laptop that keeps running gets warm and drains the battery."), !remote);
     }
 
     /// <summary>A switch of the page: flips the stored value, then asks Windows again.</summary>
@@ -266,7 +267,7 @@ internal static class KeepAwakeMenu
             {
                 // Read again on click: the menu may be older than the setting.
                 if (!LidClosed.SetKeepRunning(onBattery, !LidClosed.KeepsRunning(onBattery)))
-                    Popup.Failed("Lid setting not changed");
+                    Popup.Failed(T("Lid setting not changed"));
             },
             @checked: keepsRunning, toggle: true, enabled: enabled, tooltip: hint);
 }

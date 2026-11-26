@@ -63,26 +63,27 @@ internal static partial class PowerMode
 /// <summary>The power mode choices for the tray menu and the settings window.</summary>
 internal static class PowerModeMenu
 {
+    // English here, translated where they're shown.
     private static readonly (PowerModeChoice Mode, string Text, string Hint)[] Choices =
     [
-        (PowerModeChoice.Efficiency, "Best power efficiency", "Longest battery life, quiet and cool; apps may feel slower."),
-        (PowerModeChoice.Balanced, "Balanced", "Speed when needed, savings when not. Right for most of the time."),
-        (PowerModeChoice.Performance, "Best performance", "Full speed for heavy work and games; uses more power and gets warmer.")
+        (PowerModeChoice.Efficiency, N("Best power efficiency"), N("Longest battery life, quiet and cool; apps may feel slower.")),
+        (PowerModeChoice.Balanced, N("Balanced"), N("Speed when needed, savings when not. Right for most of the time.")),
+        (PowerModeChoice.Performance, N("Best performance"), N("Full speed for heavy work and games; uses more power and gets warmer."))
     ];
 
     /// <summary>The choices, with <paramref name="current"/> checked (read once by the caller).</summary>
     internal static void Build(IMenuBuilder menu, PowerModeChoice current)
     {
-        menu.AddItem(PowerSource.IsPluggedIn ? "On the charger" : "On battery", null, enabled: false,
-            tooltip: "Windows keeps one power mode for the charger and one for battery; this sets the one in use now.");
+        menu.AddItem(PowerSource.IsPluggedIn ? T("On the charger") : T("On battery"), null, enabled: false,
+            tooltip: T("Windows keeps one power mode for the charger and one for battery; this sets the one in use now."));
         foreach (var (mode, text, hint) in Choices)
-            menu.AddItem(text, () => Choose(mode), @checked: current == mode, tooltip: hint);
+            menu.AddItem(T(text), () => Choose(mode), @checked: current == mode, tooltip: T(hint));
     }
 
     /// <summary>No popup on success: the user chose it. Only a failure is worth saying.</summary>
     private static void Choose(PowerModeChoice mode)
     {
         if (!PowerMode.Set(mode))
-            Popup.Failed("Power mode not changed");
+            Popup.Failed(T("Power mode not changed"));
     }
 }

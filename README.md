@@ -65,6 +65,10 @@ memory and no CPU at rest.
 - Driver backup and restore for a clean Windows reinstall, settings backup, and one-click
   diagnostics for bug reports.
 
+**Languages**
+- English, Russian and Simplified Chinese, following Windows' display language or your choice
+  in Settings > System.
+
 ## Popups
 
 <div align="center">

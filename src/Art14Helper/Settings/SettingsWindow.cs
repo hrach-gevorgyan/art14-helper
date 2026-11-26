@@ -117,7 +117,7 @@ internal sealed class SettingsWindow : PaintedWindow
             return;
         _current = title;
         foreach (var item in _navItems)
-            item.Selected = item.Text == title;
+            item.Selected = item.Text == SettingsPages.Shown(title);   // items show the shown title, see ShowNav
         Rebuild();   // fresh values: a key or the tray menu may have changed something meanwhile
     }
 
@@ -158,7 +158,9 @@ internal sealed class SettingsWindow : PaintedWindow
         foreach (var page in _pageList)
         {
             var title = page.Title;
-            var item = new NavPart(title, page.Glyph, Scale, () => Navigate(title)) { Selected = title == _current };
+            // The title is the page's identity; Home, Drivers and System are named in English
+            // in the code, menu pages arrive translated already (T of those finds nothing).
+            var item = new NavPart(SettingsPages.Shown(title), page.Glyph, Scale, () => Navigate(title)) { Selected = title == _current };
             _navItems.Add(item);
             _nav.Add(item);
         }
@@ -189,16 +191,16 @@ internal sealed class SettingsWindow : PaintedWindow
         _content.Clear();
         _device = null;
         _hardware = null;
-        _content.Add(new TextPart(page.Title, UiFont.Strong(28, Scale), FluentTheme.Text, fixedHeight: S(46)));
+        _content.Add(new TextPart(SettingsPages.Shown(page.Title), UiFont.Strong(28, Scale), FluentTheme.Text, fixedHeight: S(46)));
         if (!string.IsNullOrEmpty(page.Description))
             _content.Add(new TextPart(page.Description, UiFont.Text(14, Scale), FluentTheme.TextSecondary, fixedHeight: S(30)));
 
         if (page.Title == SettingsPages.Home)
         {
             _content.Add(_device = new DeviceCardPart(Scale) { State = SettingsPages.Device() });
-            _content.Add(new SectionTitle("Quick settings", Scale));
+            _content.Add(new SectionTitle(T("Quick settings"), Scale));
             _content.Add(new QuickTilesPart(Scale) { Items = _pages.QuickSettings() });
-            _content.Add(new SectionTitle("Hardware", Scale));
+            _content.Add(new SectionTitle(T("Hardware"), Scale));
             _content.Add(_hardware = new StatusTilesPart(Scale) { Tiles = SettingsPages.Hardware() });
         }
         foreach (var section in sections)

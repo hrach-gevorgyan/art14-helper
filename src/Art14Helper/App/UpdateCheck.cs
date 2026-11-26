@@ -132,7 +132,7 @@ internal static class UpdateCheck
         try
         {
             if (await CheckAsync(now).ConfigureAwait(false) && Available is { } release)
-                Popup.Show(PopupIcon.Info, $"Art14 Helper {release.Version.ToString(3)} is out", "See the tray menu");
+                Popup.Show(PopupIcon.Info, T("Art14 Helper {0} is out", release.Version.ToString(3)), T("See the tray menu"));
         }
         catch (Exception exception)
         {

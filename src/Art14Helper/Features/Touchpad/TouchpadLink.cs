@@ -83,7 +83,7 @@ internal static class TouchpadLink
     {
         for (var attempt = 1; ; attempt++)
         {
-            var device = Control() ?? throw new InvalidOperationException("There is no HONOR touchpad on this laptop.");
+            var device = Control() ?? throw new InvalidOperationException(T("There is no HONOR touchpad on this laptop."));   // the menu shows the message
             var failure = Write(device, BuildReport(command, value, device.OutputReportLength));
             if (failure is null)
                 return;
@@ -98,8 +98,8 @@ internal static class TouchpadLink
     {
         using var handle = device.OpenForWriting();
         // The HID stack accepts only reports exactly as long as the collection's output report.
-        var problem = handle.IsInvalid ? "The touchpad couldn't be opened for a setting change."
-            : !Hid.WriteReport(handle, report) ? "The touchpad didn't accept the setting."
+        var problem = handle.IsInvalid ? T("The touchpad couldn't be opened for a setting change.")
+            : !Hid.WriteReport(handle, report) ? T("The touchpad didn't accept the setting.")
             : null;
         return problem is null ? null : new Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error(), problem);
     }

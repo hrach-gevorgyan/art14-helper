@@ -83,7 +83,7 @@ internal static class Privileged
     /// <summary>Launches this exe through UAC for one action and waits for its exit code.</summary>
     internal static bool RunInElevatedCopy(string name, string value)
     {
-        var exe = Environment.ProcessPath ?? throw new InvalidOperationException("The app's own path is unknown.");
+        var exe = Environment.ProcessPath ?? throw new InvalidOperationException(T("The app's own path is unknown."));   // can reach the user through ApplyFromMenuAsync
         var start = new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true, Verb = "runas" };
         start.ArgumentList.Add("--set-" + name);
         start.ArgumentList.Add(value);

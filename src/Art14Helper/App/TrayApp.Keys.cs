@@ -25,7 +25,7 @@ internal sealed partial class TrayApp
                 _ = Task.Run(() =>
                 {
                     if (CameraSwitch.Toggle() is { } off)
-                        Popup.Show(off ? PopupIcon.CameraOff : PopupIcon.Camera, off ? "Camera off" : "Camera on", off ? "Apps see black" : null);
+                        Popup.Show(off ? PopupIcon.CameraOff : PopupIcon.Camera, off ? T("Camera off") : T("Camera on"), off ? T("Apps see black") : null);
                 });
                 break;
             case BiosKey.ScreenSnip:
@@ -44,9 +44,9 @@ internal sealed partial class TrayApp
     private static void AnnounceMicrophone(bool muted)
     {
         if (muted)
-            Popup.Show(PopupIcon.MicrophoneOff, "Microphone off", "Muted for all apps");
+            Popup.Show(PopupIcon.MicrophoneOff, T("Microphone off"), T("Muted for all apps"));
         else
-            Popup.Show(PopupIcon.Microphone, "Microphone on");
+            Popup.Show(PopupIcon.Microphone, T("Microphone on"));
     }
 
     // The snip key: the same area selection as Win+Shift+S.
@@ -75,9 +75,9 @@ internal sealed partial class TrayApp
         _autoBacklight.Refresh();
         // Dim and Bright as a level bar, like the brightness flyout; Off and Auto in words.
         if (level is KeyboardLight.Dim or KeyboardLight.Bright)
-            Popup.Show(PopupIcon.KeyboardLight, "Keyboard light", level: level == KeyboardLight.Dim ? 0.5f : 1f);
+            Popup.Show(PopupIcon.KeyboardLight, T("Keyboard light"), level: level == KeyboardLight.Dim ? 0.5f : 1f);
         else
-            Popup.Show(level == KeyboardLight.Off ? PopupIcon.KeyboardLightOff : PopupIcon.KeyboardLight, "Keyboard light", level == KeyboardLight.Off ? "Off" : "Auto");
+            Popup.Show(level == KeyboardLight.Off ? PopupIcon.KeyboardLightOff : PopupIcon.KeyboardLight, T("Keyboard light"), level == KeyboardLight.Off ? T("Off") : T("Auto"));
         RefreshSettingsSoon();
     }
 
@@ -90,18 +90,18 @@ internal sealed partial class TrayApp
         Log.Info(attached ? "Camera attached" : "Camera removed");
         if (!attached)
         {
-            Popup.Show(PopupIcon.CameraOff, "Camera removed");
+            Popup.Show(PopupIcon.CameraOff, T("Camera removed"));
             return;
         }
         _ = Task.Run(() =>   // a registry read, off the WMI event thread
         {
             if (CameraSwitch.IsOff())
-                Popup.Show(PopupIcon.CameraOff, "Camera attached", "Privacy is on: press F8");
+                Popup.Show(PopupIcon.CameraOff, T("Camera attached"), T("Privacy is on: press F8"));
             else
-                Popup.Show(PopupIcon.Camera, "Camera attached");
+                Popup.Show(PopupIcon.Camera, T("Camera attached"));
         });
     }
 
     // The firmware switches the touchpad itself; the event carries the result.
-    private void OnTouchpadSwitched(bool enabled) => Popup.Show(enabled ? PopupIcon.Touchpad : PopupIcon.TouchpadOff, enabled ? "Touchpad on" : "Touchpad off");
+    private void OnTouchpadSwitched(bool enabled) => Popup.Show(enabled ? PopupIcon.Touchpad : PopupIcon.TouchpadOff, enabled ? T("Touchpad on") : T("Touchpad off"));
 }

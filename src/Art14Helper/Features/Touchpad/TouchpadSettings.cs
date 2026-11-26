@@ -95,27 +95,27 @@ internal static class TouchpadSettingsMenu
 {
     internal static void Build(IMenuBuilder menu)
     {
-        menu.AddItem("Vibration", null, enabled: false);
+        menu.AddItem(T("Vibration"), null, enabled: false);
         var strength = AppSettings.TouchpadVibration;
-        foreach (var (value, text) in new[] { (TouchpadVibration.Soft, "Soft"), (TouchpadVibration.Medium, "Medium"), (TouchpadVibration.Strong, "Strong") })
-            menu.AddItem(text, () => Change(() => TouchpadSettings.SetVibration(value)), @checked: strength == value);
+        foreach (var (value, text) in new[] { (TouchpadVibration.Soft, N("Soft")), (TouchpadVibration.Medium, N("Medium")), (TouchpadVibration.Strong, N("Strong")) })
+            menu.AddItem(T(text), () => Change(() => TouchpadSettings.SetVibration(value)), @checked: strength == value);
 
         menu.AddSeparator();
-        menu.AddItem("Press", null, enabled: false);
+        menu.AddItem(T("Press"), null, enabled: false);
         var press = AppSettings.TouchpadPress;
-        menu.AddItem("Less sensitive", () => Change(() => TouchpadSettings.SetPress(TouchpadPress.LessSensitive)),
-            @checked: press == TouchpadPress.LessSensitive, tooltip: "A click needs a firmer press.");
-        menu.AddItem("More sensitive", () => Change(() => TouchpadSettings.SetPress(TouchpadPress.MoreSensitive)),
-            @checked: press == TouchpadPress.MoreSensitive, tooltip: "A light press is enough to click.");
+        menu.AddItem(T("Less sensitive"), () => Change(() => TouchpadSettings.SetPress(TouchpadPress.LessSensitive)),
+            @checked: press == TouchpadPress.LessSensitive, tooltip: T("A click needs a firmer press."));
+        menu.AddItem(T("More sensitive"), () => Change(() => TouchpadSettings.SetPress(TouchpadPress.MoreSensitive)),
+            @checked: press == TouchpadPress.MoreSensitive, tooltip: T("A light press is enough to click."));
 
         menu.AddSeparator();
-        menu.AddItem("Gestures", null, enabled: false);
-        AddEdge(menu, TouchpadEdge.Brightness, "Brightness on the left edge", "Slide one finger up or down along the left edge.");
-        AddEdge(menu, TouchpadEdge.Volume, "Volume on the right edge", "Slide one finger up or down along the right edge.");
+        menu.AddItem(T("Gestures"), null, enabled: false);
+        AddEdge(menu, TouchpadEdge.Brightness, T("Brightness on the left edge"), T("Slide one finger up or down along the left edge."));
+        AddEdge(menu, TouchpadEdge.Volume, T("Volume on the right edge"), T("Slide one finger up or down along the right edge."));
         var knuckle = AppSettings.KnuckleScreenshot == true;
-        menu.AddItem("Knuckle double-tap takes a screenshot", () => Change(() => TouchpadSettings.SetKnuckleScreenshot(AppSettings.KnuckleScreenshot != true)),
+        menu.AddItem(T("Knuckle double-tap takes a screenshot"), () => Change(() => TouchpadSettings.SetKnuckleScreenshot(AppSettings.KnuckleScreenshot != true)),
             @checked: knuckle, toggle: true,
-            tooltip: "Knock twice on the touchpad with a knuckle; the whole screen is saved to Pictures\\Screenshots.");
+            tooltip: T("Knock twice on the touchpad with a knuckle; the whole screen is saved to Pictures\\Screenshots."));
     }
 
     private static void AddEdge(IMenuBuilder menu, TouchpadEdge edge, string text, string hint)

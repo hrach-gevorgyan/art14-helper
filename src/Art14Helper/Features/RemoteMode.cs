@@ -73,7 +73,7 @@ internal static class RemoteMode
             // Remember what was already on, so turning remote mode off leaves the user's own choice alone.
             AppSettings.SetRemoteChangedLid(battery, !LidClosed.KeepsRunning(battery));
             if (!LidClosed.SetKeepRunning(battery, true))
-                Popup.Show(PopupIcon.Warning, "Lid setting not changed", "Lid may still sleep");
+                Popup.Show(PopupIcon.Warning, T("Lid setting not changed"), T("Lid may still sleep"));
         }
         KeepAwake.Start(null);
         Log.Info("Remote mode on");

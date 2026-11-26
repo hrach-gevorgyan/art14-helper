@@ -60,11 +60,11 @@ internal static class DriverBackup
             return 1;
         }
         var question = backup
-            ? $"Save a backup of all drivers to\n{Path.GetFullPath(path)}?"
-            : $"Install the drivers from\n{Path.GetFullPath(path)}?\n\nOnly continue if you chose this in Art14 Helper just now.";
+            ? T("Save a backup of all drivers to\n{0}?", Path.GetFullPath(path))
+            : T("Install the drivers from\n{0}?\n\nOnly continue if you chose this in Art14 Helper just now.", Path.GetFullPath(path));
         if (!CommonDialogs.Message(IntPtr.Zero, question, AppInfo.Name, CommonDialogs.Icon.Warning, yesNo: true))
         {
-            WriteReport(DriverBackupResult.Failed("Cancelled."));
+            WriteReport(DriverBackupResult.Failed(T("Cancelled.")));
             return 1;
         }
         var result = backup ? Backup(path) : Restore(path);
@@ -78,15 +78,15 @@ internal static class DriverBackup
             return await Task.Run(() => @switch == BackupSwitch ? Backup(path) : Restore(path), stop);
 
         var started = DateTime.UtcNow;   // a report older than this run is a stale one
-        var exe =Environment.ProcessPath ?? throw new InvalidOperationException("The app's own path is unknown.");
+        var exe =Environment.ProcessPath ?? throw new InvalidOperationException(T("The app's own path is unknown."));
         var start = new ProcessStartInfo(exe) { UseShellExecute = true, Verb = "runas" };
         start.ArgumentList.Add(@switch);
         start.ArgumentList.Add(path);
         try
         {
-            using var copy = Process.Start(start) ?? throw new InvalidOperationException("Windows didn't start the elevated copy.");
+            using var copy = Process.Start(start) ?? throw new InvalidOperationException(T("Windows didn't start the elevated copy."));
             await copy.WaitForExitAsync(stop);
-            return ReadReport(started) ?? DriverBackupResult.Failed($"The elevated copy ended with code {copy.ExitCode}.");
+            return ReadReport(started) ?? DriverBackupResult.Failed(T("The elevated copy ended with code {0}.", copy.ExitCode));
         }
         catch (System.ComponentModel.Win32Exception declined) when (declined.NativeErrorCode == PrivilegedAction.PromptCancelled)
         {
@@ -99,7 +99,7 @@ internal static class DriverBackup
     {
         var full = Path.GetFullPath(zipPath);
         if (!Path.GetExtension(full).Equals(".zip", StringComparison.OrdinalIgnoreCase))
-            return "A driver backup is saved as a .zip file.";
+            return T("A driver backup is saved as a .zip file.");
         foreach (var system in new[]
                  {
                      Environment.GetFolderPath(Environment.SpecialFolder.Windows),
@@ -108,7 +108,7 @@ internal static class DriverBackup
                      Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)
                  })
             if (system.Length > 0 && full.StartsWith(Path.TrimEndingDirectorySeparator(system) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                return "Choose a folder of your own for the backup, not a system folder.";
+                return T("Choose a folder of your own for the backup, not a system folder.");
         return null;
     }
 
@@ -122,7 +122,7 @@ internal static class DriverBackup
             var export = SystemTool.Run("pnputil.exe", "/export-driver", "*", work);
             var packages = Directory.GetFiles(work, "*.inf", SearchOption.AllDirectories).Length;
             if (packages == 0)
-                return DriverBackupResult.Failed($"Windows exported no third-party drivers (pnputil {export.ExitCode}: {export.Tail()}).");
+                return DriverBackupResult.Failed(T("Windows exported no third-party drivers (pnputil {0}: {1}).", export.ExitCode, export.Tail()));
 
             CopyColorCalibration(ColorModeService.ColorDirectory, Directory.CreateDirectory(Path.Combine(work, ColorFolder)).FullName, fromColorFolder: true);
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(zipPath))!);
@@ -164,20 +164,20 @@ internal static class DriverBackup
                     folder = work;
                 }
                 else if (!Directory.Exists(source))
-                    return DriverBackupResult.Failed("That file or folder doesn't exist any more.");
+                    return DriverBackupResult.Failed(T("That file or folder doesn't exist any more."));
 
                 var colors = Path.Combine(folder, ColorFolder);
                 if (Directory.Exists(colors))
                     CopyColorCalibration(colors, ColorModeService.ColorDirectory, fromColorFolder: false);
                 packages = Directory.GetFiles(folder, "*.inf", SearchOption.AllDirectories).Length;
                 if (packages == 0)
-                    return DriverBackupResult.Failed("There are no driver files (.inf) in it.");
+                    return DriverBackupResult.Failed(T("There are no driver files (.inf) in it."));
                 arguments = ["/add-driver", Path.Combine(Path.GetFullPath(folder), "*.inf"), "/subdirs", "/install"];
             }
 
             var install = SystemTool.Run("pnputil.exe", arguments);
             if (install.ExitCode is not (0 or RestartNeeded))
-                return DriverBackupResult.Failed($"Windows didn't install the drivers (pnputil {install.ExitCode}: {install.Tail()}).");
+                return DriverBackupResult.Failed(T("Windows didn't install the drivers (pnputil {0}: {1}).", install.ExitCode, install.Tail()));
             Log.Info($"Driver restore: {packages} packages from {source}");
             return new DriverBackupResult(true, packages, install.ExitCode == RestartNeeded, null);
         }

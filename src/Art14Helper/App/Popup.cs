@@ -44,7 +44,7 @@ internal static class Popup
 
     // Layout at 100% scale, in pixels.
     private const float Shadow = 20, ShadowDrop = 4, Height = 48, Pad = 18, IconSize = 16, IconBox = 20, Gap = 12, Between = 28,
-        TitleSize = 14, DetailSize = 12, BarWidth = 96, BarHeight = 4, MinWidth = 220, MaxWidth = 440;
+        TitleSize = 14, DetailSize = 12, BarWidth = 96, BarHeight = 4, MinWidth = 220, MaxWidth = 560;   // room for languages longer than English
     // Bottom edge of the pill above the work area's bottom, clear of Windows' own flyouts.
     private const float AboveTaskbar = 112;
     // How far the pill rises into place as it fades in, like Windows' own flyouts.
@@ -64,7 +64,7 @@ internal static class Popup
     }
 
     /// <summary>Something the user asked for didn't work; the reason is in the log.</summary>
-    internal static void Failed(string title) => Show(PopupIcon.Warning, title, "See the log");
+    internal static void Failed(string title) => Show(PopupIcon.Warning, title, T("See the log"));
 
     /// <param name="detail">A few words on the right ("24 min to 70%"); keep it short.</param>
     /// <param name="level">0 to 1: a level bar on the right instead of the detail.</param>
@@ -95,8 +95,8 @@ internal static class Popup
     internal static Bitmap Render(PopupIcon icon, string title, string? detail, float scale, float? level = null, int? battery = null)
     {
         var dark = FluentTheme.IsDark;
-        using var titleFont = FluentTheme.CreateFont(FluentTheme.BodyStrongFamily, TitleSize, scale);
-        using var detailFont = FluentTheme.CreateFont(FluentTheme.TextFamily, DetailSize, scale);
+        using var titleFont = FluentTheme.CreateFont(FluentTheme.DrawingStrongFamily, TitleSize, scale, strong: true);
+        using var detailFont = FluentTheme.CreateFont(FluentTheme.DrawingTextFamily, DetailSize, scale);
         using var glyphFont = new Font(FluentTheme.IconFamily, IconSize * scale, FontStyle.Regular, GraphicsUnit.Pixel);
 
         // Width follows the content; a long detail is cut with an ellipsis at the maximum.
@@ -166,7 +166,9 @@ internal static class Popup
         using var secondary = new SolidBrush(secondaryInk);
         var textLeft = iconBox.Right + Gap * scale;
         var end = pill.Right - Pad * scale;
-        var rightWidth = right > 0 ? Math.Min(right * scale, (end - textLeft) * 0.55f) : 0;
+        // When both don't fit, the title (what happened) keeps up to 60% and the detail is cut first.
+        var available = end - textLeft - (right > 0 ? Between * scale : 0);
+        var rightWidth = right > 0 ? Math.Min(right * scale, Math.Max(available - titleWidth * scale, available * 0.4f)) : 0;
         var titleBox = new RectangleF(textLeft, pill.Y, end - textLeft - (rightWidth > 0 ? rightWidth + Between * scale : 0), pill.Height);
         using (var line = new StringFormat { LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap })
             g.DrawString(title, titleFont, primary, titleBox, line);

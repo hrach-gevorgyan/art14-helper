@@ -13,8 +13,8 @@ internal static unsafe partial class Authenticode
     /// </summary>
     internal static void Verify(string path, bool requireHonorSigner)
     {
-        var problem = !HasValidSignature(path) ? "Windows doesn't trust this installer's signature, so it wasn't saved."
-            : requireHonorSigner && !IsHonorSigner(SignerOrganization(path)) ? "This installer isn't signed by HONOR, so it wasn't saved."
+        var problem = !HasValidSignature(path) ? T("Windows doesn't trust this installer's signature, so it wasn't saved.")
+            : requireHonorSigner && !IsHonorSigner(SignerOrganization(path)) ? T("This installer isn't signed by HONOR, so it wasn't saved.")
             : null;
         if (problem is not null)
             throw new InvalidDataException(problem);

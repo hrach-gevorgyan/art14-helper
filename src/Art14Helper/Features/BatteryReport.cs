@@ -21,7 +21,7 @@ internal static class BatteryReport
         catch (Exception exception) when (exception is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             Log.Error("Battery report not opened", exception);
-            Popup.Failed("Battery report failed");
+            Popup.Failed(T("Battery report failed"));
         }
     });
 }

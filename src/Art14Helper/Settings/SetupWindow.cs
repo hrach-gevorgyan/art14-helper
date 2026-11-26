@@ -52,7 +52,7 @@ internal sealed class SetupWindow : PaintedWindow
         var (area, scale) = User32.MonitorAt(User32.CursorPosition);
         var size = new Size((int)(560 * scale), (int)(_mode switch { Mode.Update => 400, Mode.Uninstall => 500, _ => 470 } * scale));
         var bounds = new Rectangle(area.Left + (area.Width - size.Width) / 2, area.Top + (area.Height - size.Height) / 2, size.Width, size.Height);
-        Open("Art14Helper.Setup", AppInfo.Name + " setup", User32.Caption | User32.SystemMenu | User32.MinimizeBox, bounds, scale);
+        Open("Art14Helper.Setup", T("{0} setup", AppInfo.Name), User32.Caption | User32.SystemMenu | User32.MinimizeBox, bounds, scale);
         ShowAndActivate();
         if (_mode == Mode.Installing)
             UiThread.Post(() => _ = RunAsync(new Choices(true, true, false)));
@@ -65,10 +65,10 @@ internal sealed class SetupWindow : PaintedWindow
         _page.Clear();
         var (title, subtitle) = _mode switch
         {
-            Mode.Install => ($"Install {AppInfo.Name}", "Charge limit, keyboard light, touchpad, display colors and driver updates for the MagicBook Art 14."),
-            Mode.Update => ($"Update {AppInfo.Name}", "Another version is installed. Your settings stay as they are."),
-            Mode.Uninstall => ($"Uninstall {AppInfo.Name}", "Removes the app, its autostart and its Start menu entry. BIOS settings stay as they are, unless you turn off the charge limit below."),
-            _ => ($"Installing {AppInfo.Name}", "This takes a few seconds.")
+            Mode.Install => (T("Install {0}", AppInfo.Name), T("Charge limit, keyboard light, touchpad, display colors and driver updates for the MagicBook Art 14.")),
+            Mode.Update => (T("Update {0}", AppInfo.Name), T("Another version is installed. Your settings stay as they are.")),
+            Mode.Uninstall => (T("Uninstall {0}", AppInfo.Name), T("Removes the app, its autostart and its Start menu entry. BIOS settings stay as they are, unless you turn off the charge limit below.")),
+            _ => (T("Installing {0}", AppInfo.Name), T("This takes a few seconds."))
         };
         _page.Add(_heading = new HeadingPart(title, UiFont.Strong(24, Scale), S(40), S(16), S(56)));
         _page.Add(_description = new TextPart(subtitle, UiFont.Text(14, Scale), FluentTheme.TextSecondary, wrap: true));
@@ -83,13 +83,13 @@ internal sealed class SetupWindow : PaintedWindow
         if (_notice is not null)
             _page.Add(_notice);
 
-        var secondary = new ButtonPart(_secondary?.Text ?? "Cancel", primary: false, Scale, Close) { Enabled = _secondary?.Enabled ?? _mode != Mode.Installing };
+        var secondary = new ButtonPart(_secondary?.Text ?? T("Cancel"), primary: false, Scale, Close) { Enabled = _secondary?.Enabled ?? _mode != Mode.Installing };
         var primary = new ButtonPart(_mode switch
         {
-            Mode.Install => "Install",
-            Mode.Update => "Update",
-            Mode.Uninstall => "Uninstall",
-            _ => "Open"
+            Mode.Install => T("Install"),
+            Mode.Update => T("Update"),
+            Mode.Uninstall => T("Uninstall"),
+            _ => T("Open")
         }, primary: true, Scale, GoAhead) { Visible = _primary?.Visible ?? _mode != Mode.Installing };
         (_secondary, _primary) = (secondary, primary);
         _page.Add(primary);
@@ -160,16 +160,16 @@ internal sealed class SetupWindow : PaintedWindow
         [
             new RowSpec
             {
-                Text = "Keep my settings",
-                Secondary = "For installing again later. Off removes everything the app saved.",
+                Text = T("Keep my settings"),
+                Secondary = T("For installing again later. Off removes everything the app saved."),
                 Kind = RowKind.Toggle,
                 Checked = _keepSettings,
                 OnClick = () => Flip(ref _keepSettings)
             },
             new RowSpec
             {
-                Text = "Turn off the charge limit",
-                Secondary = "Lets the battery charge to 100% again.",
+                Text = T("Turn off the charge limit"),
+                Secondary = T("Lets the battery charge to 100% again."),
                 Kind = RowKind.Toggle,
                 Checked = _removeChargeLimit,
                 OnClick = () => Flip(ref _removeChargeLimit)
@@ -179,16 +179,16 @@ internal sealed class SetupWindow : PaintedWindow
         [
             new RowSpec
             {
-                Text = "Start with Windows",
-                Secondary = "Opens in the tray when you sign in, without a UAC prompt.",
+                Text = T("Start with Windows"),
+                Secondary = T("Opens in the tray when you sign in, without a UAC prompt."),
                 Kind = RowKind.Toggle,
                 Checked = _startWithWindows,
                 OnClick = () => Flip(ref _startWithWindows)
             },
             new RowSpec
             {
-                Text = "Apply recommended settings",
-                Secondary = "Charge limit Home, keyboard light Auto, refresh rate Auto, P3 colors with native white. All can be changed later.",
+                Text = T("Apply recommended settings"),
+                Secondary = T("Charge limit Home, keyboard light Auto, refresh rate Auto, P3 colors with native white. All can be changed later."),
                 Kind = RowKind.Toggle,
                 Checked = _recommended,
                 OnClick = () => Flip(ref _recommended)
@@ -235,11 +235,11 @@ internal sealed class SetupWindow : PaintedWindow
         catch (Exception exception)
         {
             Log.Error("Setup failed", exception);
-            ShowStatus("That didn't work: " + exception.Message, FluentTheme.Danger);
+            ShowStatus(T("That didn't work: {0}", exception.Message), FluentTheme.Danger);
         }
         _working = false;
         _progress.Running = false;
-        _secondary.Text = "Close";
+        _secondary.Text = T("Close");
         _secondary.Enabled = true;
         Invalidate();
     }

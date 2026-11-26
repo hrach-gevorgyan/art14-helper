@@ -73,6 +73,6 @@ public class DisplayTests
     public void LongPopupTextKeepsTheCardCompact()
     {
         using var card = Popup.Render(PopupIcon.Info, new string('x', 200), new string('y', 300), 1f);
-        Assert.True(card.Width <= 440 + 2 * 20 + 1);   // capped (plus the shadow margin), text cut with an ellipsis
+        Assert.True(card.Width <= 560 + 2 * 20 + 1);   // capped (plus the shadow margin), text cut with an ellipsis; wider than 440 for longer languages
     }
 }

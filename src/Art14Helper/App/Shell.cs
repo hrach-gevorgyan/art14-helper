@@ -26,7 +26,7 @@ internal static class Shell
         if (Privileged.IsElevated && Native.User32.GetShellWindow() == IntPtr.Zero)
         {
             Log.Info($"Not opening {target}: Explorer isn't running, and it would start with admin rights");
-            Popup.Show(PopupIcon.Warning, "Explorer isn't running", "Couldn't open it without admin rights");
+            Popup.Show(PopupIcon.Warning, T("Explorer isn't running"), T("Couldn't open it without admin rights"));
             return;
         }
         try
