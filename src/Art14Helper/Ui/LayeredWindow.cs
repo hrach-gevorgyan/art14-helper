@@ -33,6 +33,7 @@ internal sealed class LayeredWindow : Window
     private long _motionStart;   // Stopwatch timestamp
     private Point _place;        // where the picture rests
     private int _rise;           // pixels it starts below that place when appearing
+    private bool _animated;      // Windows' animation effects, as of the last Present
 
     internal LayeredWindow()
         => Create("Art14Helper.Layered", null, User32.Popup, Topmost | User32.ToolWindow | Layered | NoActivate | ClickThrough);
@@ -41,10 +42,12 @@ internal sealed class LayeredWindow : Window
     /// Shows <paramref name="image"/> with its top-left corner at a screen point (physical
     /// pixels). When it wasn't showing, it rises <paramref name="rise"/> pixels into place
     /// while fading in; when it was (even while leaving), the picture is replaced in place.
+    /// With Windows' animation effects off it simply appears, and later simply goes.
     /// </summary>
     internal void Present(Bitmap image, Point topLeft, int rise = 0)
     {
-        var appearing = !_visible;
+        _animated = User32.AnimationsEnabled;
+        var appearing = !_visible && _animated;
         _place = topLeft;
         _rise = Math.Max(rise, 0);
         var start = appearing ? new Point(topLeft.X, topLeft.Y + _rise) : topLeft;
@@ -119,8 +122,13 @@ internal sealed class LayeredWindow : Window
             return null;
         if ((uint)wParam == HideTimer)
         {
-            User32.KillTimer(Handle, HideTimer);
-            Animate(Motion.Out);
+            if (_animated)
+            {
+                User32.KillTimer(Handle, HideTimer);
+                Animate(Motion.Out);
+            }
+            else
+                Hide();
             return 0;
         }
         if (_motion == Motion.Still)

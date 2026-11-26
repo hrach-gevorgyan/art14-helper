@@ -171,6 +171,22 @@ internal static unsafe partial class User32
     }
 
     /// <summary>
+    /// Windows' "Animation effects" switch (Settings > Accessibility > Visual effects). Off,
+    /// windows should appear and go without motion or fades. On when it can't be read.
+    /// </summary>
+    internal static bool AnimationsEnabled
+    {
+        get
+        {
+            int enabled = 1;
+            return SystemParametersInfoW(0x1042, 0, &enabled, 0) == 0 || enabled != 0;   // SPI_GETCLIENTAREAANIMATION
+        }
+    }
+
+    [LibraryImport(Libraries.User32)]
+    private static partial int SystemParametersInfoW(uint action, uint param, void* value, uint winIni);
+
+    /// <summary>
     /// Moves a layered window and changes its overall opacity in one update, keeping its
     /// picture, so position and fade never show a frame apart (for animations).
     /// </summary>

@@ -6,6 +6,14 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+### Added
+- ACCESSIBILITY.md: what works with the keyboard, screen readers and other assistive
+  technology, the known gaps with workarounds, and how to report a barrier.
+
+### Fixed
+- Popups follow Windows' Animation effects switch: with it off, they appear and go without
+  sliding or fading.
+
 ## [1.1.0] - 2026-11-27
 
 ### Added
