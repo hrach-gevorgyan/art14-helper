@@ -6,6 +6,8 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-26
+
 ### Fixed
 - Started without admin rights (e.g. reopened from the Start menu after the app closed), the
   app now hands over to its elevated sign-in task again instead of running without fans,
@@ -55,4 +57,5 @@ The first release.
 - Installer, updater and uninstaller; starts at sign-in without prompts.
 - One native exe of about 10 MB, about 11 MB of memory, no work while idle.
 
+[1.0.1]: ../../releases/tag/v1.0.1
 [1.0.0]: ../../releases/tag/v1.0.0
