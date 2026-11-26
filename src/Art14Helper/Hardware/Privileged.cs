@@ -83,10 +83,11 @@ internal static class Privileged
     /// <summary>Launches this exe through UAC for one action and waits for its exit code.</summary>
     internal static bool RunInElevatedCopy(string name, string value)
     {
-        var exe = Environment.ProcessPath ?? throw new InvalidOperationException(T("The app's own path is unknown."));   // can reach the user through ApplyFromMenuAsync
+        var exe = Environment.ProcessPath ?? throw Shown(m => new InvalidOperationException(m), N("The app's own path is unknown."));   // can reach the user through ApplyFromMenuAsync
         var start = new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true, Verb = "runas" };
         start.ArgumentList.Add("--set-" + name);
         start.ArgumentList.Add(value);
+        start.ArgumentList.Add(L10n.LanguageArgument);   // its error box in this copy's language
         try
         {
             using var copy = System.Diagnostics.Process.Start(start);
@@ -215,7 +216,7 @@ internal sealed class PrivilegedAction<T>(string name, Func<T, string> format, P
         }
         catch (Exception failure)
         {
-            problem = failure.Message;
+            problem = ShownMessage(failure);
         }
         if (problem is not null)
             CommonDialogs.Message(User32.GetActiveWindow(), problem, AppInfo.Name, CommonDialogs.Icon.Error);

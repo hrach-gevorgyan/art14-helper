@@ -33,14 +33,14 @@ internal static class TouchscreenControl
     {
         var devices = Devices();
         if (devices.Count == 0)
-            throw new InvalidOperationException(T("Touchscreen not found."));   // the menu shows the message
+            throw Shown(m => new InvalidOperationException(m), N("Touchscreen not found."));   // the menu shows the message
         foreach (var device in devices)
         {
             if ((Native.Devices.ProblemOf(device) == ProblemDisabled) == disabled)
                 continue;
             var change = SystemTool.Run("pnputil.exe", disabled ? "/disable-device" : "/enable-device", device);
             if (change.ExitCode != 0)
-                throw new InvalidOperationException(T("Windows didn't switch the touchscreen: {0}", change.Tail()));
+                throw Shown(m => new InvalidOperationException(m), N("Windows didn't switch the touchscreen: {0}"), change.Tail());
         }
     }
 

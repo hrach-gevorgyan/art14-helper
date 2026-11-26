@@ -78,13 +78,14 @@ internal static class DriverBackup
             return await Task.Run(() => @switch == BackupSwitch ? Backup(path) : Restore(path), stop);
 
         var started = DateTime.UtcNow;   // a report older than this run is a stale one
-        var exe =Environment.ProcessPath ?? throw new InvalidOperationException(T("The app's own path is unknown."));
+        var exe =Environment.ProcessPath ?? throw Shown(m => new InvalidOperationException(m), N("The app's own path is unknown."));
         var start = new ProcessStartInfo(exe) { UseShellExecute = true, Verb = "runas" };
         start.ArgumentList.Add(@switch);
         start.ArgumentList.Add(path);
+        start.ArgumentList.Add(L10n.LanguageArgument);   // its question and report in this copy's language
         try
         {
-            using var copy = Process.Start(start) ?? throw new InvalidOperationException(T("Windows didn't start the elevated copy."));
+            using var copy = Process.Start(start) ?? throw Shown(m => new InvalidOperationException(m), N("Windows didn't start the elevated copy."));
             await copy.WaitForExitAsync(stop);
             return ReadReport(started) ?? DriverBackupResult.Failed(T("The elevated copy ended with code {0}.", copy.ExitCode));
         }
@@ -134,7 +135,7 @@ internal static class DriverBackup
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
             Log.Error("Driver backup failed", exception);
-            return DriverBackupResult.Failed(exception.Message);
+            return DriverBackupResult.Failed(ShownMessage(exception));
         }
         finally
         {
@@ -184,7 +185,7 @@ internal static class DriverBackup
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException)
         {
             Log.Error("Driver restore failed", exception);
-            return DriverBackupResult.Failed(exception.Message);
+            return DriverBackupResult.Failed(ShownMessage(exception));
         }
         finally
         {

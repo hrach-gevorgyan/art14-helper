@@ -145,9 +145,9 @@ internal sealed partial class TrayApp
         var auto = RefreshRate.IsAuto;
         menu.AddItem(T("Refresh rate"), null, enabled: false);
         if (highest > 0)
-            menu.AddItem($"{highest} Hz", () => RefreshRate.Choose(highest), @checked: !auto && current == highest,
+            menu.AddItem(T("{0} Hz", highest), () => RefreshRate.Choose(highest), @checked: !auto && current == highest,
                 tooltip: T("The panel's fastest rate, {0} Hz: the smoothest motion.", highest));
-        menu.AddItem("60 Hz", () => RefreshRate.Choose(60), @checked: !auto && current == 60,
+        menu.AddItem(T("{0} Hz", 60), () => RefreshRate.Choose(60), @checked: !auto && current == 60,
             tooltip: T("Uses less battery and runs cooler."));
         menu.AddItem(T("Auto: max on charger, 60 Hz on battery"), () => RefreshRate.SetAuto(true), @checked: auto,
             tooltip: T("Follows the power source, and comes back after sleep."));

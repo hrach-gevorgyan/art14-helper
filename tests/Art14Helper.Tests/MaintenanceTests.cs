@@ -107,6 +107,20 @@ public class MaintenanceTests
     }
 
     [Fact]
+    public void TooltipLeavesOutWholeLinesNeverCutsThem()
+    {
+        // A long first line (keep awake in a longer language) leaves room for only some lines.
+        var reading = new SensorReading(DateTime.UtcNow, 2100, 2200, 2400, 2500, 48, 31, null, null, null);
+        var first = new string('x', 60);
+        var text = StatusReport.Tooltip("auto", "40–70%", 12.3, reading, [first]);
+        Assert.True(text.Length <= StatusReport.TooltipLimit, $"{text.Length} characters");
+        var whole = new[] { first, "Keyboard light: auto", "Charge limit: 40–70%", "Battery: " + StatusReport.PowerText(12.3),
+            "CPU 48°C, battery 31°C", "Fans: 2100→2400 / 2200→2500 RPM", "Fans: 2100 / 2200 RPM" };
+        Assert.All(text.Split('\n'), line => Assert.Contains(line, whole));   // every line complete
+        Assert.StartsWith(first + "\nKeyboard light: auto", text);
+    }
+
+    [Fact]
     public void TooltipDropsFanTargetsBeforeCuttingNumbers()
     {
         var reading = new SensorReading(DateTime.UtcNow, 2100, 2200, 2400, 2500, 48, 31, null, null, null);

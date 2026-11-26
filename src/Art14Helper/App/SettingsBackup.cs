@@ -69,7 +69,7 @@ internal static class SettingsBackup
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             Log.Error("Settings backup not written", exception);
-            CommonDialogs.Message(User32.GetActiveWindow(), exception.Message, AppInfo.Name, CommonDialogs.Icon.Error);
+            CommonDialogs.Message(User32.GetActiveWindow(), ShownMessage(exception), AppInfo.Name, CommonDialogs.Icon.Error);
         }
     }
 
@@ -96,6 +96,7 @@ internal static class SettingsBackup
         }
         AppSettings.Store(values);
         AppSettings.ChargeOnce = false;
+        L10n.Reload();   // the backup may hold another language; the settings window rebuilds right after
         Log.Info($"Settings restored from {Path.GetFileName(file)} ({values.Count} values)");
         _ = Task.Run(ApplyAsync);
     }

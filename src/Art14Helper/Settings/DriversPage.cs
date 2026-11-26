@@ -19,7 +19,7 @@ internal sealed class DriversPage : IDisposable
     private bool _disposed;
     private IReadOnlyList<DriverComponent>? _components;
     private Dictionary<int, DriverUpdate> _updates = [];
-    private string _status = T("Reading installed drivers…");
+    private Func<string> _status = () => T("Reading installed drivers…");   // made when shown: follows a language change
     private bool _statusIsWarning;
     private bool _busy;
     private int? _downloadingId;
@@ -68,7 +68,7 @@ internal sealed class DriversPage : IDisposable
             ?? await TryAsync(() => _service.BuildDeviceListAsync(_stop), "Driver list unreadable");
         if (_components is null)
         {
-            SetStatus(T("The installed drivers couldn't be read"), warning: true);
+            SetStatus(() => T("The installed drivers couldn't be read"), warning: true);
             return;
         }
         Notify();
@@ -94,7 +94,7 @@ internal sealed class DriversPage : IDisposable
         Notify();
     }
 
-    private void SetStatus(string text, bool warning = false)
+    private void SetStatus(Func<string> text, bool warning = false)
     {
         _status = text;
         _statusIsWarning = warning;
@@ -106,20 +106,20 @@ internal sealed class DriversPage : IDisposable
         if (_busy || _components is null)
             return;
         _busy = true;
-        SetStatus(T("Checking for updates…"));
+        SetStatus(() => T("Checking for updates…"));
         try
         {
             var result = await Task.Run(() => _service.CheckAsync(_components, _stop));
             if (!result.IsComplete)
             {
-                SetStatus(T("HONOR's server didn't respond. Try again later."), warning: true);
+                SetStatus(() => T("HONOR's server didn't respond. Try again later."), warning: true);
                 return;
             }
             _components = result.Components;
             _lastCheck = DateTime.Now;
             _updates = result.Updates.ToDictionary(update => update.Component.Id);   // one package per component already
             var count = Shown(_components).Count(c => _updates.TryGetValue(c.Id, out var u) && u.IsUpdate);
-            SetStatus(count switch
+            SetStatus(() => count switch
                 {
                     0 => T("Everything is up to date"),
                     1 => T("1 update available"),
@@ -133,7 +133,7 @@ internal sealed class DriversPage : IDisposable
         catch (Exception exception)
         {
             Log.Error("Update check stopped", exception);
-            SetStatus(T("The update check didn't finish"), warning: true);
+            SetStatus(() => T("The update check didn't finish"), warning: true);
         }
         finally
         {
@@ -160,7 +160,7 @@ internal sealed class DriversPage : IDisposable
         [
             new RowSpec
             {
-                Text = _status,
+                Text = _status(),
                 Secondary = checkedLine,
                 Glyph = _busy ? "\uE895" : _statusIsWarning ? "\uE7BA" : "\uE73E",
                 Kind = _busy ? RowKind.Info : RowKind.Action,
@@ -322,7 +322,7 @@ internal sealed class DriversPage : IDisposable
         catch (Exception exception)
         {
             Log.Error($"Download of {update.Component.Name} {update.Version} failed", exception);
-            CommonDialogs.Message(DialogOwner, exception.Message, T("Drivers"), CommonDialogs.Icon.Error);
+            CommonDialogs.Message(DialogOwner, ShownMessage(exception), T("Drivers"), CommonDialogs.Icon.Error);
         }
         finally
         {
@@ -366,7 +366,7 @@ internal sealed class DriversPage : IDisposable
             return;
         var before = (_status, _statusIsWarning);
         _busy = true;
-        SetStatus(T(busyText));
+        SetStatus(() => T(busyText));
         DriverBackupResult? outcome = null;
         try
         {
@@ -379,7 +379,7 @@ internal sealed class DriversPage : IDisposable
         catch (Exception exception)
         {
             Log.Error(busyText.TrimEnd('…') + " failed", exception);
-            outcome = DriverBackupResult.Failed(exception.Message);
+            outcome = DriverBackupResult.Failed(ShownMessage(exception));
         }
         finally
         {

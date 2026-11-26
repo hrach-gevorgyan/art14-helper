@@ -21,13 +21,16 @@ internal static class Diagnostics
         UiThread.Post(() =>
         {
             if (Clipboard.SetText(report))
-                Popup.Show(PopupIcon.Copied, "Diagnostics copied", "Ready to paste");
+                Popup.Show(PopupIcon.Copied, T("Diagnostics copied"), T("Ready to paste"));   // the popup is interface; the report itself stays English
             else
-                Popup.Show(PopupIcon.Warning, "Diagnostics not copied", "Clipboard busy");
+                Popup.Show(PopupIcon.Warning, T("Diagnostics not copied"), T("Clipboard busy"));
         });
     });
 
-    internal static string Build()
+    /// <summary>The report, in English whatever the app's language: it's read in bug reports.</summary>
+    internal static string Build() => InEnglish(BuildReport);
+
+    private static string BuildReport()
     {
         var text = new StringBuilder();
         text.AppendLine($"{AppInfo.Name} {AppInfo.Version} diagnostics, {DateTime.Now:yyyy-MM-dd HH:mm}");

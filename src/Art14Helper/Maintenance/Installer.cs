@@ -118,7 +118,7 @@ internal static class Installer
     private static string InstallCore(SetupWindow.Choices choices, bool update, Action<string> progress, bool detached = false)
     {
         var source = Environment.ProcessPath
-            ?? throw new InvalidOperationException(T("Could not determine the path to this exe."));
+            ?? throw Shown(m => new InvalidOperationException(m), N("Could not determine the path to this exe."));
         // Read through a handle that stays open: without write or delete sharing, nobody can
         // rename or replace this exe (it may sit in a folder the user can write to) between
         // starting with admin rights and the copy into Program Files.
@@ -200,6 +200,7 @@ internal static class Installer
         start.ArgumentList.Add(argument);
         start.ArgumentList.Add(value);
         start.ArgumentList.Add(WaitingPidPrefix + Environment.ProcessId);   // so the elevated copy doesn't close this one
+        start.ArgumentList.Add(L10n.LanguageArgument);
         try
         {
             using var copy = Process.Start(start);
@@ -564,6 +565,10 @@ internal static class Installer
             startInfo.ArgumentList.Add(argument);
         if (value is not null)
             startInfo.ArgumentList.Add(value);
+        // A one-job copy (install, uninstall) speaks this copy's language; a tray app follows
+        // the stored setting, so it gets none (it would pin the language for the whole run).
+        if (argument is not null)
+            startInfo.ArgumentList.Add(L10n.LanguageArgument);
 
         try
         {
