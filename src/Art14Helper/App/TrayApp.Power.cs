@@ -215,6 +215,7 @@ internal sealed partial class TrayApp
         _ = Task.Run(ColorModeService.Restore);
         _ = Task.Run(TouchpadSettings.Reapply);
         _ = Task.Run(_micMute.Sync);   // the mic LED is lost in sleep too
+        _ = Task.Run(() => UpdateCheck.CheckAndAnnounceAsync());   // a week may have passed in sleep; nothing while off
         RefreshSettingsSoon();
     }
 

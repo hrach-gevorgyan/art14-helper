@@ -70,8 +70,8 @@ build instead of releasing without notes.
 - **Nothing while idle.** React to Windows' notifications; don't add polling timers.
 - **Admin rights only where needed**, through `Privileged`, and never a UAC prompt for
   background work.
-- **No network use** except the Drivers page talking to HONOR's update servers, and never
-  personal data.
+- **No network use** except the Drivers page talking to HONOR's update servers and the
+  opt-in update notice asking GitHub for the latest release, and never personal data.
 - **No HONOR files** in the repository or the exe.
 - **Popups only** for keys, automatic changes, failures and results the user can't see.
 

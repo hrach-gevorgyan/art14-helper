@@ -143,6 +143,18 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
                 Kind = RowKind.Action,
                 OnClick = Diagnostics.Copy
             },
+            new RowSpec
+            {
+                Text = "Tell me about new versions",
+                Secondary = "Once a week, asks GitHub whether a newer version is out. Sends only the app's version and downloads nothing.",
+                Glyph = "",
+                Kind = RowKind.Toggle,
+                Checked = AppSettings.UpdateCheck,
+                OnClick = () => run(UpdateCheck.Toggle)
+            },
+            .. UpdateCheck.Available is { } release
+                ? new[] { new RowSpec { Text = $"Version {release.Version.ToString(3)} is out", Secondary = "Opens the release page on GitHub: download the new exe there and run it to update.", Glyph = "", Kind = RowKind.Action, OnClick = UpdateCheck.OpenPage } }
+                : [],
             new RowSpec { Text = "Version", Glyph = "", Value = AppInfo.Version, Kind = RowKind.Info }
         ]));
         sections.Add(new SettingsSection("About", [Info("Unofficial software", "", AppInfo.Disclaimer), Info("Credits", "", AppInfo.Credits), Info("License", "", AppInfo.License)]));

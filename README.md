@@ -98,9 +98,12 @@ download, read the code and [build it yourself](#build).
 ## Privacy
 
 - No telemetry, no accounts, no ads, no self-updater.
-- The only network use is the Drivers page asking HONOR's update server for new versions:
-  laptop model, BIOS and driver versions, Windows version and language. Never a serial
-  number or anything personal.
+- The Drivers page asks HONOR's update server for new versions: laptop model, BIOS and
+  driver versions, Windows version and language. Never a serial number or anything personal.
+- Only if you turn on **Tell me about new versions** (off by default), the app asks GitHub
+  once a week for its latest release, sending nothing but its own version. It only tells
+  you; it never downloads anything.
+- Nothing else goes over the network.
 - Downloads are checked by HTTPS, SHA-256 and the digital signature of every program file.
 - The app ships no HONOR files.
 

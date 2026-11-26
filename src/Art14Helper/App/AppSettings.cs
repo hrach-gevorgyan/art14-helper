@@ -78,6 +78,17 @@ internal static class AppSettings
     internal static LidAction? GetLidBefore(bool onBattery)
         => GetNumber(PerSource("Lid.Before", onBattery)) is { } value && Enum.IsDefined((LidAction)value) ? (LidAction)value : null;
     internal static void SetLidBefore(bool onBattery, LidAction? action) => SetNumber(PerSource("Lid.Before", onBattery), (int?)action);
+
+    // The optional update notice (off by default): whether it's on, when GitHub last answered
+    // (UTC, round-trip format), and the last version announced with a popup (once per version).
+    internal static bool UpdateCheck { get => GetFlag("App.UpdateCheck") ?? false; set => SetFlag("App.UpdateCheck", value ? true : null); }
+    internal static DateTime? UpdateCheckedAt
+    {
+        get => DateTime.TryParse(GetText("App.UpdateCheckedAt"), System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.RoundtripKind, out var at) ? at.ToUniversalTime() : null;
+        set => SetText("App.UpdateCheckedAt", value?.ToUniversalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture));
+    }
+    internal static string? UpdateAnnounced { get => GetText("App.UpdateAnnounced"); set => SetText("App.UpdateAnnounced", value); }
     // The power plan that change was made in, so it's put back there even if another plan is active by then.
     internal static Guid? GetLidPlan(bool onBattery) => Guid.TryParse(GetText(PerSource("Lid.Plan", onBattery)), out var plan) ? plan : null;
     internal static void SetLidPlan(bool onBattery, Guid? plan) => SetText(PerSource("Lid.Plan", onBattery), plan?.ToString());
