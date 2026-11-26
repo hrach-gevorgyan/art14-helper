@@ -81,6 +81,27 @@ internal sealed partial class TrayApp
         RefreshSettingsSoon();
     }
 
+    // The magnetic camera was put on or taken off. Put back while the F8 privacy switch is
+    // on, apps get black frames, which looks like a broken camera: say so.
+    private void OnCameraDocked(bool attached)
+    {
+        if (_disposed)
+            return;
+        Log.Info(attached ? "Camera attached" : "Camera removed");
+        if (!attached)
+        {
+            Popup.Show(PopupIcon.CameraOff, "Camera removed");
+            return;
+        }
+        _ = Task.Run(() =>   // a registry read, off the WMI event thread
+        {
+            if (CameraSwitch.IsOff())
+                Popup.Show(PopupIcon.CameraOff, "Camera attached", "Privacy is on: press F8");
+            else
+                Popup.Show(PopupIcon.Camera, "Camera attached");
+        });
+    }
+
     // The firmware switches the touchpad itself; the event carries the result.
     private void OnTouchpadSwitched(bool enabled) => Popup.Show(enabled ? PopupIcon.Touchpad : PopupIcon.TouchpadOff, enabled ? "Touchpad on" : "Touchpad off");
 }

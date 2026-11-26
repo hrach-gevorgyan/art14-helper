@@ -41,9 +41,11 @@ internal sealed class BiosKeys(Func<bool> ignoreLightEvents) : IDisposable
     };
 
     private const uint TouchpadTurnedOn = 0x283, TouchpadTurnedOff = 0x2A3;
+    private const uint CameraRemoved = 0x2E0, CameraAttached = 0x2E1;
 
     private readonly Dictionary<BiosKey, long> _lastSeen = [];
     private readonly HashSet<uint> _unknownLogged = [];   // only the WMI event thread touches it
+    private bool? _cameraAttached;                        // the same
     private IDisposable? _subscription;
 
     /// <summary>A key was pressed (repeats already filtered out).</summary>
@@ -54,6 +56,9 @@ internal sealed class BiosKeys(Func<bool> ignoreLightEvents) : IDisposable
 
     /// <summary>The firmware changed the keyboard light (Fn+Space).</summary>
     internal event Action<KeyboardLight>? LightChanged;
+
+    /// <summary>The magnetic camera was put on (true) or taken off (false) the screen.</summary>
+    internal event Action<bool>? CameraDocked;
 
     internal void Start() => _subscription = Wmi.Watch(@"root\wmi", "SELECT * FROM OemWMIEvent", OnEvent);
 
@@ -89,6 +94,16 @@ internal sealed class BiosKeys(Func<bool> ignoreLightEvents) : IDisposable
         {
             if (!ignoreLightEvents())
                 LightChanged?.Invoke(light);   // ignored right after wake, when the firmware re-announces its own mode
+        }
+        else if (code is CameraRemoved or CameraAttached)
+        {
+            // A state: only a change counts, so a repeated or re-announced event shows nothing.
+            var attached = code == CameraAttached;
+            if (_cameraAttached != attached)
+            {
+                _cameraAttached = attached;
+                CameraDocked?.Invoke(attached);
+            }
         }
         else if (_unknownLogged.Add(code))
             Log.Info($"BIOS event 0x{code:X3} not used");   // once per code: brightness and charger events repeat a lot

@@ -47,6 +47,8 @@ internal static class Popup
         TitleSize = 14, DetailSize = 12, BarWidth = 96, BarHeight = 4, MinWidth = 220, MaxWidth = 440;
     // Bottom edge of the pill above the work area's bottom, clear of Windows' own flyouts.
     private const float AboveTaskbar = 112;
+    // How far the pill rises into place as it fades in, like Windows' own flyouts.
+    private const float Rise = 16;
 
     private static Action<Action>? _onUiThread;
     private static LayeredWindow? _window;
@@ -80,7 +82,7 @@ internal static class Popup
             using var pill = Render(icon, title, detail, scale, level, battery);
             var corner = new Point(area.Left + (area.Width - pill.Width) / 2,
                 area.Bottom - pill.Height + (int)(Shadow * scale) - (int)(AboveTaskbar * scale));
-            _window.Present(pill, corner);
+            _window.Present(pill, corner, rise: (int)(Rise * scale));
             _window.HideAfter(VisibleMilliseconds);
         }
         catch (Exception exception)

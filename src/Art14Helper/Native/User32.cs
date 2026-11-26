@@ -170,6 +170,16 @@ internal static unsafe partial class User32
         UpdateLayeredWindow(window, screenDc, &position, &size, pictureDc, &origin, 0, &blend, 2);   // ULW_ALPHA
     }
 
+    /// <summary>
+    /// Moves a layered window and changes its overall opacity in one update, keeping its
+    /// picture, so position and fade never show a frame apart (for animations).
+    /// </summary>
+    internal static void SetLayeredFrame(IntPtr window, Point position, byte opacity)
+    {
+        var blend = new Blend { SourceConstantAlpha = opacity, AlphaFormat = 1 };
+        UpdateLayeredWindow(window, IntPtr.Zero, &position, null, IntPtr.Zero, null, 0, &blend, 2);
+    }
+
     /// <summary>Changes a layered window's overall opacity, keeping its picture (for fades).</summary>
     internal static void SetLayeredOpacity(IntPtr window, byte opacity)
     {
