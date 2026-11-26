@@ -132,6 +132,7 @@ internal sealed partial class TrayApp : IDisposable
         keys.KeyPressed += OnBiosKey;
         keys.TouchpadSwitched += OnTouchpadSwitched;
         keys.LightChanged += OnLightChanged;
+        keys.CameraDocked += OnCameraDocked;
         keys.Start();
         _biosKeys = keys;
         if (_disposed)   // closed while the listener was starting

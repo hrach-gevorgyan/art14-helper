@@ -79,6 +79,47 @@ public class FeatureTests
     }
 
     [Fact]
+    public void ReportsCameraChangesOnly()
+    {
+        using var keys = new BiosKeys(() => false);
+        var camera = new List<bool>();
+        keys.CameraDocked += camera.Add;
+
+        keys.Dispatch(0x2E0);   // taken off
+        keys.Dispatch(0x2E0);   // repeated: no change
+        keys.Dispatch(0x2E1);   // put back
+        keys.Dispatch(0x2E1);   // re-announced: no change
+        keys.Dispatch(0x2E0);
+
+        Assert.Equal([false, true, false], camera);
+    }
+
+    [Fact]
+    public void PopupAppearsVisibleFirstThenGlidesIntoPlace()
+    {
+        var (below, opacity) = Art14Helper.Ui.LayeredWindow.AppearFrame(16, 0);
+        Assert.Equal((16, (byte)0), (below, opacity));                       // starts the full rise below, invisible
+
+        (below, opacity) = Art14Helper.Ui.LayeredWindow.AppearFrame(16, Art14Helper.Ui.LayeredWindow.FadeInMs);
+        Assert.Equal(255, opacity);                                          // fully visible early…
+        Assert.InRange(below, 1, 3);                                         // …while still gliding the last pixels
+
+        (below, opacity) = Art14Helper.Ui.LayeredWindow.AppearFrame(16, Art14Helper.Ui.LayeredWindow.RiseMs);
+        Assert.Equal((0, (byte)255), (below, opacity));                      // at rest
+        Assert.Equal((0, (byte)255), Art14Helper.Ui.LayeredWindow.AppearFrame(16, 5_000));   // a late timer overshoots nothing
+    }
+
+    [Fact]
+    public void PopupSinksAsItFadesOut()
+    {
+        Assert.Equal((0, (byte)255), Art14Helper.Ui.LayeredWindow.LeaveFrame(16, 0));
+        var (below, opacity) = Art14Helper.Ui.LayeredWindow.LeaveFrame(16, Art14Helper.Ui.LayeredWindow.FadeOutMs / 2);
+        Assert.InRange(opacity, 200, 240);                                   // gentle at first
+        Assert.InRange(below, 0, 2);
+        Assert.Equal((8, (byte)0), Art14Helper.Ui.LayeredWindow.LeaveFrame(16, Art14Helper.Ui.LayeredWindow.FadeOutMs));   // half the rise, gone
+    }
+
+    [Fact]
     public void RepeatedPressesCountOncePerBurst()
     {
         using var keys = new BiosKeys(() => false);

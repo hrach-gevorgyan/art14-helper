@@ -6,6 +6,13 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+### Added
+- Popup when the magnetic camera is taken off or put back; put back while the F8 privacy
+  switch is on, it says so, instead of apps silently getting a black picture.
+
+### Changed
+- Popups rise gently into place as they fade in, like Windows' own flyouts.
+
 ## [1.0.1] - 2026-11-26
 
 ### Fixed

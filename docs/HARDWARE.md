@@ -51,8 +51,14 @@ property are the event code.
 | `0x28E` | F12 | Opens the screen snip (`ms-screenclip:`) |
 | `0x283` / `0x2A3` | Touchpad turned on / off by the firmware | Popup |
 | `0x2B1`–`0x2B4` | Fn+Space set the keyboard light: off, dim, bright, Auto | Stores the mode, Auto starts or stops, popup |
+| `0x2E0` / `0x2E1` | Magnetic camera taken off / put back on the screen | Popup; when put back with the F8 privacy switch on, says so |
 | `0x109` | Charger plugged in or out | Not used (Windows' own power broadcast is used) |
-| `0x281` / `0x282` | Screen brightness changed | Not used |
+| `0x281` / `0x282` | Screen brightness went down / up (touchpad left edge or keys) | Not used (Windows shows its own brightness flyout) |
+
+The camera turns up as a USB device ("FHD Camera", `USB\VID_3277&PID_00A8`) only while an
+app uses it; the rest of the time Windows lists it as not present, attached or not. The
+camera events are states, and the app reacts only to a change, so a repeated or
+re-announced event shows nothing.
 
 Tapping Fn alone switches the Fn lock in the firmware (LED on = standard keys) without any
 event, so the app can't follow a tap. Some firmware repeats a press; events within 400 ms

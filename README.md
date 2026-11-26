@@ -73,7 +73,7 @@ memory and no CPU at rest.
 
 Popups look and move like Windows 11's own volume flyout. They appear only when you need
 them: for a key or gesture (F7, F8, Fn+Space, the touchpad key, the knuckle screenshot),
-for something that changed by itself (the charger plugged in, Auto switching the refresh
+for something that changed by itself (the charger plugged in, the camera taken off or put back, Auto switching the refresh
 rate, keep awake running out), or when a choice couldn't be applied. A choice you just made
 in the menu or the settings window shows no popup: you can already see it.
 
