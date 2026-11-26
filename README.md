@@ -127,6 +127,7 @@ window opened and closed) without touching any setting.
 | [Hardware reference](docs/HARDWARE.md) | Every BIOS command, event and register the app uses |
 | [Hardware test](docs/HARDWARE_TEST.md) | The checklist for testing on the laptop |
 | [Changelog](CHANGELOG.md) | What changed in each version |
+| [Accessibility](ACCESSIBILITY.md) | Keyboard, screen readers, motion: what works, known gaps, workarounds |
 | [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Support](SUPPORT.md) | Helping, reporting, getting help |
 
 ## License
