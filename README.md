@@ -90,6 +90,18 @@ starts at sign-in without prompts. To update, run a newer exe and click **Update
 settings stay. To uninstall, use Settings > Apps: it also puts the display colors and lid
 settings back. What the recommended settings are is in the [user guide](docs/GUIDE.md).
 
+For scripts and package managers, both work without a window (one UAC prompt, or none from
+an elevated prompt), with exit code 0 on success:
+
+```powershell
+.\Art14Helper.exe --install --silent
+& "C:\Program Files\Art14Helper\Art14Helper.exe" --uninstall --silent
+```
+
+A silent install uses the setup's defaults (Start with Windows, recommended settings; an
+update keeps every choice). A silent uninstall removes the settings and leaves the charge
+limit as it is.
+
 **The exe isn't code-signed, on purpose.** Windows will call it an "unknown publisher".
 Certificates cost money every year, and this free, open-source project will never pay for
 one; a signature only says who built a file, not what it does. If you'd rather not trust a

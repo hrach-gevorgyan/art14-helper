@@ -43,6 +43,15 @@ public class MaintenanceTests
     }
 
     [Fact]
+    public void FindsTheLauncherThatWaitsForTheElevatedCopy()
+    {
+        Assert.Equal(4242, Installer.WaitingLauncher([@"C:\x\Art14Helper.exe", "--install", "--silent", "--waiting-pid=4242"]));
+        Assert.Null(Installer.WaitingLauncher([@"C:\x\Art14Helper.exe", "--install", "--silent"]));
+        Assert.Null(Installer.WaitingLauncher(["x", "--waiting-pid=abc"]));
+        Assert.Null(Installer.WaitingLauncher(["x", "--waiting-pid=-5"]));
+    }
+
+    [Fact]
     public void ReadsTheProgramOfAQuotedCommand()
     {
         var task = XDocument.Parse($"<Task xmlns=\"{Task}\"><Actions><Exec><Command>\"C:\\A b\\x.exe\"</Command></Exec></Actions></Task>");

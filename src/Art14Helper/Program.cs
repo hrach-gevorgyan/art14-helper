@@ -28,7 +28,7 @@ internal static class Program
             [var set, ..] when set.StartsWith("--set-", StringComparison.Ordinal)
                 => ShowingErrors(() => Privileged.RunFromCommandLine(set[6..], value)),
             ["--install", ..] => Installer.Install(value),
-            ["--uninstall", ..] => Installer.Uninstall(),
+            ["--uninstall", ..] => Installer.Uninstall(silent: value == Installer.SilentSwitch),
             [SelfTest.Switch, ..] => SelfTest.Run(),
             // Started by the Drivers page; reports through a file, no window.
             [var transfer, ..] when transfer is DriverBackup.BackupSwitch or DriverBackup.RestoreSwitch
