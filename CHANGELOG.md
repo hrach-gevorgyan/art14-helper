@@ -6,6 +6,12 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- Started without admin rights (e.g. reopened from the Start menu after the app closed), the
+  app now hands over to its elevated sign-in task again instead of running without fans,
+  temperatures, the brightness flyout and other BIOS features. Administrators filtered by
+  UAC were taken for standard users.
+
 ## [1.0.0] - 2026-11-24
 
 The first release.
