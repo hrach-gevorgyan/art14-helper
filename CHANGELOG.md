@@ -6,6 +6,8 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-27
+
 ### Added
 - ACCESSIBILITY.md: what works with the keyboard, screen readers and other assistive
   technology, the known gaps with workarounds, and how to report a barrier.
@@ -94,6 +96,7 @@ The first release.
 - Installer, updater and uninstaller; starts at sign-in without prompts.
 - One native exe of about 10 MB, about 11 MB of memory, no work while idle.
 
+[1.2.0]: ../../releases/tag/v1.2.0
 [1.1.0]: ../../releases/tag/v1.1.0
 [1.0.1]: ../../releases/tag/v1.0.1
 [1.0.0]: ../../releases/tag/v1.0.0
