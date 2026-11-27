@@ -163,7 +163,7 @@ internal static class KeyboardLightMenu
         var light = AppSettings.CurrentLight;
         foreach (var (value, text) in Brightness)
             menu.AddItem(T(text), async () => await ChooseLightAsync(value), @checked: light == value,
-                tooltip: value == KeyboardLight.Auto ? T("Follows the room's light: off in daylight, brighter as it gets darker.") : null);
+                tooltip: value == KeyboardLight.Auto ? T("Follows the room's light: on in the dark, off in bright light.") : null);
 
         menu.AddSeparator();
         menu.AddItem(T("Turn off when idle"), null, enabled: false);

@@ -397,7 +397,7 @@ internal sealed class SettingsPages(Action<Action> run, Action<string> open, Fun
         [
             T("Left-click the tray icon for this window, right-click it for the quick menu."),
             T("Going to reinstall Windows? Back up your drivers on the Drivers page first."),
-            T("On Auto, the keyboard light follows the room's light, smoothly and at no extra battery cost."),
+            T("On Auto, the keyboard light turns on in the dark and off in bright light, by itself."),
             T("sRGB shows websites and photos as intended; P3 is wider, for photo and video work."),
             T("Knock twice on the touchpad with a knuckle to save a screenshot to Pictures\\Screenshots.")
         ];

@@ -27,13 +27,14 @@ internal sealed class AutoBacklightService : IDisposable
 {
     internal readonly record struct Bucket(double MinLux, double MaxLux, byte Level);
 
-    // Dark room = bright keys. Neighbouring buckets overlap: e.g. at 12 lux the
-    // keys stay at 100% if they were there, or at 60% if they were there.
+    // On in a dim or dark room, off in bright light. In Auto mode this keyboard's firmware
+    // knows only two states: level 0 is off and any other level is the same full brightness
+    // (measured: 40% and 100% look alike, 0% turns the light off), so finer levels would
+    // change nothing anyone can see. The buckets overlap: between 100 and 160 lux the
+    // light keeps its state, so a lamp at the border doesn't make it flap.
     internal static readonly Bucket[] Buckets =
     [
-        new(0, 15, 100),
-        new(8, 60, 60),
-        new(30, 160, 30),
+        new(0, 160, 100),
         new(100, double.MaxValue, 0)
     ];
 
