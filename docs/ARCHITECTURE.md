@@ -7,8 +7,10 @@ How Art14 Helper is built, for anyone reading or changing the code.
 - **One small exe, nothing else.** NativeAOT, no .NET runtime to install, no services,
   no drivers, no WinForms or WPF.
 - **No work while idle.** No polling timers: the app waits for Windows to tell it
-  something changed (power broadcasts, device arrival, display changes, BIOS and sensor
-  events) and runs in Windows 11's efficiency mode while no window is open.
+  something changed (power broadcasts, device arrival, display changes, BIOS events) and
+  runs in Windows 11's efficiency mode while no window is open. One exception: keyboard
+  Auto reads the light sensor every 2 s while the screen is on, because this laptop's sensor
+  driver sends no change reports with a change sensitivity set and five a second without one.
 - **The hardware, directly.** BIOS through WMI, the touchpad through HID, the display
   through the Intel driver's library, everything else through documented Windows APIs.
 

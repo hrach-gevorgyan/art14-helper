@@ -13,8 +13,11 @@ namespace Art14Helper;
 ///   or shadow passing over the sensor does nothing. Lighting the keys up (room got
 ///   dark) reacts faster than dimming them (room got bright).
 /// - Fade. Level changes ramp over about half a second instead of jumping.
-/// - Battery. Nothing runs unless the keyboard is in Auto. Then the sensor driver
-///   reports changes at most twice a second, the app keeps no polling timer, and levels go through the direct ACPI path (one WMI call, no extra
+/// - Battery. Nothing runs unless the keyboard is in Auto and the screen is on. Then the
+///   sensor is read every <see cref="PollMilliseconds"/> (one quick call). This laptop's
+///   driver can't report only real changes: with a change sensitivity it reports nothing at
+///   all (so Auto used to follow the room only at start and wake), without one it reports
+///   five times a second. Levels go through the direct ACPI path (one WMI call, no extra
 ///   process); the privileged task is only a fallback.
 /// - Always working. The sensor is re-acquired if it appears late after boot, and
 ///   the level is re-sent after mode changes, restores and wake, when the firmware
@@ -44,6 +47,7 @@ internal sealed class AutoBacklightService : IDisposable
     private const int SensorRetries = 12;                // two minutes, then only the next refresh tries
     private const int EmptyReadsBeforeReopen = 3;
     private const int EmptyReadRetryMilliseconds = 5000;
+    internal const int PollMilliseconds = 2000;          // light checks while Auto runs and the screen is on
 
     private const byte GroupKeyboard = 0x06;
     private const byte CommandAutoLevel = 0x15;
@@ -53,6 +57,8 @@ internal sealed class AutoBacklightService : IDisposable
     private readonly Lock _gate = new();
     private readonly System.Threading.Timer _decisionTimer;
     private readonly System.Threading.Timer _retryTimer;
+    private readonly System.Threading.Timer _pollTimer;
+    private bool _screenOff;           // no checks while the screen is off (the keys are dark anyway)
     private int _retriesLeft = -1;     // -1 = not retrying
     private int _emptyReads;           // reads in a row that gave no value
     private AmbientLight? _sensor;
@@ -68,7 +74,80 @@ internal sealed class AutoBacklightService : IDisposable
     {
         _decisionTimer = new System.Threading.Timer(_ => Decide(), null, Timeout.Infinite, Timeout.Infinite);
         _retryTimer = new System.Threading.Timer(_ => RefreshSafely(), null, Timeout.Infinite, Timeout.Infinite);
+        _pollTimer = new System.Threading.Timer(_ => Poll(), null, Timeout.Infinite, Timeout.Infinite);
         _instance = this;
+    }
+
+    // Called under _gate: checks run while Auto listens and the screen is on.
+    private void UpdatePolling()
+    {
+        if (_disposed)
+            return;
+        try
+        {
+            if (_listening && !_screenOff && _sensor is not null)
+                _pollTimer.Change(PollMilliseconds, PollMilliseconds);
+            else
+                _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    /// <summary>One light check (timer thread): hands the reading to <see cref="OnReading"/>; nothing escapes.</summary>
+    private void Poll()
+    {
+        try
+        {
+            AmbientLight? sensor;
+            lock (_gate)
+            {
+                if (_disposed || !_listening || _screenOff || (sensor = _sensor) is null)
+                    return;
+            }
+            if (sensor.Read() is { } lux)
+            {
+                lock (_gate)
+                    _emptyReads = 0;
+                OnReading(lux);
+                return;
+            }
+            bool lost;
+            lock (_gate)
+                lost = ++_emptyReads >= EmptyReadsBeforeReopen;
+            if (lost)
+            {
+                lock (_gate)
+                    _emptyReads = 0;
+                SensorLost();
+            }
+        }
+        catch (Exception exception)
+        {
+            Log.Error("Ambient light check failed", exception);
+            SensorLost();
+        }
+    }
+
+    /// <summary>The screen turned off: no light checks until it's on again.</summary>
+    internal void ScreenOff()
+    {
+        lock (_gate)
+        {
+            _screenOff = true;
+            UpdatePolling();
+        }
+    }
+
+    /// <summary>The screen is on again (also without a wake, e.g. after Remote mode's short screen-off): checks resume.</summary>
+    internal void ScreenOn()
+    {
+        lock (_gate)
+        {
+            _screenOff = false;
+            UpdatePolling();
+        }
     }
 
     internal void Start() => Refresh();
@@ -99,6 +178,7 @@ internal sealed class AutoBacklightService : IDisposable
                 return;
             (lost, _sensor) = (_sensor, null);
             _listening = false;
+            UpdatePolling();
             _fade?.Cancel();
         }
         Log.Info("Ambient light sensor lost; opening it again");
@@ -131,7 +211,11 @@ internal sealed class AutoBacklightService : IDisposable
     {
         bool startFresh;
         lock (_gate)
+        {
+            _screenOff = false;   // woke up: the screen is on
+            UpdatePolling();
             startFresh = !_listening || _bucket < 0;
+        }
         if (startFresh)
         {
             // Not running yet (e.g. the sensor wasn't ready at login): try again now.
@@ -151,15 +235,14 @@ internal sealed class AutoBacklightService : IDisposable
     internal void Refresh()
     {
         var isAuto = AppSettings.CurrentLight == KeyboardLight.Auto;
-        AmbientLight? sensor;
-        bool start = false, stop = false;
+        var start = false;
         lock (_gate)
         {
             if (_disposed)
                 return;
             if (isAuto)
                 EnsureSensor();
-            if ((sensor = _sensor) is null)
+            if (_sensor is null)
             {
                 if (isAuto)
                     RetryLater();
@@ -171,7 +254,7 @@ internal sealed class AutoBacklightService : IDisposable
             else if (!isAuto && _listening)
             {
                 _listening = false;
-                stop = true;
+                UpdatePolling();
                 _fade?.Cancel();
             }
 
@@ -183,28 +266,14 @@ internal sealed class AutoBacklightService : IDisposable
             _output = null;
         }
 
-        // Outside the lock: the sensor's callback takes it too, and stopping may wait for a callback.
-        try
+        // Checks every PollMilliseconds while Auto runs (see the class remarks: this driver's
+        // change reports don't work); stopped outside Auto.
+        lock (_gate)
         {
+            UpdatePolling();
             if (start)
-                sensor.Listen(OnReading, SensorLost);
-            if (stop)
-                sensor.StopListening();
-        }
-        catch (Exception exception)
-        {
-            Log.Error("Ambient light sensor not (un)subscribed", exception);
-            if (start)
-                lock (_gate)
-                {
-                    _listening = false;   // so the next refresh tries again
-                    RetryLater();
-                }
-            return;
-        }
-        if (start)
-            lock (_gate)
                 _retriesLeft = -1;   // running: no more retries
+        }
 
         if (isAuto)
             Schedule(SettleMilliseconds);
@@ -442,6 +511,7 @@ internal sealed class AutoBacklightService : IDisposable
             _fade?.Cancel();
         }
         sensor?.Dispose();
+        _pollTimer.Dispose();
         _decisionTimer.Dispose();
         _retryTimer.Dispose();
         if (ReferenceEquals(_instance, this))

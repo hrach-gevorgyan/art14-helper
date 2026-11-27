@@ -88,8 +88,10 @@ With it off, the app changes nothing until you choose something.
 - The app ships no HONOR files; its icons come from the Windows icon font.
 - One native exe (NativeAOT, about 10 MB), no .NET runtime to install, no services, about
   11 MB of private memory. It waits for Windows' notifications (keys, power, display,
-  devices, light sensor) instead of polling, and runs in Windows 11's efficiency mode while
-  no window is open.
+  devices) instead of polling, and runs in Windows 11's efficiency mode while no window is
+  open. The one exception: with the keyboard light on Auto and the screen on, it reads the
+  light sensor every 2 seconds (one quick call), because this laptop's sensor driver doesn't
+  report changes reliably.
 
 ## FAQ
 
