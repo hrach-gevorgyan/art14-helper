@@ -118,6 +118,11 @@ meanwhile.
 **The app is in the wrong language.** It follows Windows' display language. Pick another in
 System > Language; English is used for languages the app doesn't have yet.
 
+**In Chinese on English Windows, some characters in the tray menu look bolder than others.**
+The tray menu is a standard Windows menu drawn with the system's menu font; on English
+Windows, Windows fills in Chinese characters from more than one font. On Chinese Windows the
+menu font is Chinese and it looks even. The app's own windows and popups aren't affected.
+
 **Fans and temperatures are missing, and the brightness flyout doesn't show.** The app is
 running without admin rights (limited mode); the tooltip says so. Choose **Restart with admin
 rights** at the top of the tray menu.
