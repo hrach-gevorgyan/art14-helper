@@ -59,6 +59,11 @@ internal sealed partial class TrayApp
                     var previous = _displayState;
                     _displayState = state;
                     KeepAwake.ScreenIsOff = state == 0;
+                    // Keyboard Auto checks the light only while the screen is on.
+                    if (state == 0)
+                        _autoBacklight.ScreenOff();
+                    else
+                        _autoBacklight.ScreenOn();
                     // Back from a short screen-off (Remote mode) isn't a wake: the laptop stayed awake.
                     // A long one may have ended in a real sleep (lid, power button): restore as after one.
                     var held = state != 0 ? KeepAwake.EndScreenHold() : null;

@@ -6,6 +6,12 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- Keyboard light Auto follows the room again while you work. It used to change only at
+  start, after wake or when the mode was picked: with the change sensitivity the app asked
+  for, this laptop's light sensor driver sends no reports at all. Auto now checks the sensor
+  every 2 seconds, only while it's on and the screen is on.
+
 ## [1.3.0] - 2026-11-27
 
 ### Added

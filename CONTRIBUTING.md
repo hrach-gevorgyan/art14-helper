@@ -67,7 +67,9 @@ build instead of releasing without notes.
 
 ## Rules the app follows
 
-- **Nothing while idle.** React to Windows' notifications; don't add polling timers.
+- **Nothing while idle.** React to Windows' notifications; don't add polling timers. (The
+  one exception is keyboard Auto's light check every 2 s while the screen is on, because the
+  light sensor driver doesn't report changes; see AutoBacklightService.)
 - **Admin rights only where needed**, through `Privileged`, and never a UAC prompt for
   background work.
 - **No network use** except the Drivers page talking to HONOR's update servers and the
