@@ -6,6 +6,8 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-11-27
+
 ### Fixed
 - Keyboard light Auto follows the room again while you work. It used to change only at
   start, after wake or when the mode was picked: with the change sensitivity the app asked
@@ -126,6 +128,7 @@ The first release.
 - Installer, updater and uninstaller; starts at sign-in without prompts.
 - One native exe of about 10 MB, about 11 MB of memory, no work while idle.
 
+[1.3.1]: ../../releases/tag/v1.3.1
 [1.3.0]: ../../releases/tag/v1.3.0
 [1.2.0]: ../../releases/tag/v1.2.0
 [1.1.0]: ../../releases/tag/v1.1.0
