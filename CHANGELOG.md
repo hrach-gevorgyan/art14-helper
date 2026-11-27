@@ -6,6 +6,8 @@ All notable changes to Art14 Helper. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-27
+
 ### Added
 - Russian and Simplified Chinese. The app follows Windows' display language, or the language
   chosen in Settings > System > Language; the choice applies at once. The log and Copy
@@ -116,6 +118,7 @@ The first release.
 - Installer, updater and uninstaller; starts at sign-in without prompts.
 - One native exe of about 10 MB, about 11 MB of memory, no work while idle.
 
+[1.3.0]: ../../releases/tag/v1.3.0
 [1.2.0]: ../../releases/tag/v1.2.0
 [1.1.0]: ../../releases/tag/v1.1.0
 [1.0.1]: ../../releases/tag/v1.0.1
