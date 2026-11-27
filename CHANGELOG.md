@@ -11,6 +11,8 @@ All notable changes to Art14 Helper. The format follows
   start, after wake or when the mode was picked: with the change sensitivity the app asked
   for, this laptop's light sensor driver sends no reports at all. Auto now checks the sensor
   every 2 seconds, only while it's on and the screen is on.
+- Auto is now plainly on in the dark and off in bright light: in Auto the firmware has no
+  dim step (any level other than 0 is full brightness), so the in-between levels did nothing.
 
 ## [1.3.0] - 2026-11-27
 

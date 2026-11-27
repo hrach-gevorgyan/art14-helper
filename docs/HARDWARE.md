@@ -28,7 +28,13 @@ instance `HWMI_0`. Only administrators may call it.
 
 Keyboard mode codes: `0x02` off, `0x03` dim, `0x04` bright, `0x10` Auto. In Auto the
 firmware picks no brightness itself: the app reads the light sensor and sends the level
-with `0x1506`. Some firmware versions refuse fixed levels; the app then emulates Dim and
+with `0x1506`. Measured on BIOS 3.05: level `0` turns the light off and any other level
+gives the same full brightness, so Auto is on or off (there is no dim step in Auto).
+
+The ambient light sensor (Windows Sensor API) reads correctly on request, but with a change
+sensitivity set it sends no change reports at all (any `VT_R8` value; a `VT_R4` one is
+ignored), and without one it reports five times a second whatever the report interval. The
+app therefore reads it every 2 s while keyboard Auto is on and the screen is on. Some firmware versions refuse fixed levels; the app then emulates Dim and
 Bright through Auto at 50 % and 100 %.
 
 Charge windows: Home 40–70 %, Office 70–90 %, Travel 95–100 %, off 0–100 %. Charging

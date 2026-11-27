@@ -49,7 +49,7 @@ memory and no CPU at rest.
 - Battery health against the design capacity, cycle count, and Windows' battery report.
 
 **Keyboard and keys**
-- Backlight Off, Dim, Bright or Auto, following the room through the light sensor, plus
+- Backlight Off, Dim, Bright or Auto (on in the dark, off in bright light, from the light sensor), plus
   the idle timeout.
 - Fn lock: standard F-keys or media keys.
 - F7 mutes the microphone for every app and lights its LED; F8 is a camera privacy switch

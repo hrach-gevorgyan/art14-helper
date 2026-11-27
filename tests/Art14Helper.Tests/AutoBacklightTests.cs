@@ -9,41 +9,40 @@ public class AutoBacklightTests
         => AutoBacklightService.Buckets[AutoBacklightService.Classify(lux, current)].Level;
 
     [Theory]
-    [InlineData(0, 100)]     // pitch dark
-    [InlineData(12, 100)]    // dark room
-    [InlineData(40, 60)]     // dim
-    [InlineData(120, 30)]    // lamp-lit
-    [InlineData(500, 0)]     // normal room light
-    [InlineData(20000, 0)]   // daylight
+    [InlineData(0, 100)]     // pitch dark: on
+    [InlineData(24, 100)]    // dim room: on
+    [InlineData(120, 100)]   // lamp-lit: on (fresh decisions take the darker bucket)
+    [InlineData(500, 0)]     // normal room light: off
+    [InlineData(20000, 0)]   // daylight: off
     public void FreshDecisionPicksBucketForLight(double lux, byte expectedLevel)
         => Assert.Equal(expectedLevel, LevelFor(lux));
 
     [Fact]
     public void StaysInCurrentBucketInsideOverlap()
     {
-        // At 12 lux both "dark" (0-15) and "dim" (8-60) fit: no change either way.
-        Assert.Equal(0, AutoBacklightService.Classify(12, current: 0));
-        Assert.Equal(1, AutoBacklightService.Classify(12, current: 1));
+        // At 130 lux both "on" (0-160) and "off" (100+) fit: no change either way.
+        Assert.Equal(0, AutoBacklightService.Classify(130, current: 0));
+        Assert.Equal(1, AutoBacklightService.Classify(130, current: 1));
     }
 
     [Fact]
     public void LeavesBucketOnlyWhenClearlyOutside()
     {
-        // From "dim" (8-60): 59 lux stays, 61 moves to "lamp-lit".
-        Assert.Equal(1, AutoBacklightService.Classify(59, current: 1));
-        Assert.Equal(2, AutoBacklightService.Classify(61, current: 1));
-        // Back down: must drop below 30 (lamp-lit lower bound) to return.
-        Assert.Equal(2, AutoBacklightService.Classify(35, current: 2));
-        Assert.Equal(1, AutoBacklightService.Classify(25, current: 2));
+        // From "on" (0-160): 159 lux stays, 161 turns off.
+        Assert.Equal(0, AutoBacklightService.Classify(159, current: 0));
+        Assert.Equal(1, AutoBacklightService.Classify(161, current: 0));
+        // Back down: must drop below 100 (the off bucket's lower bound) to turn on again.
+        Assert.Equal(1, AutoBacklightService.Classify(105, current: 1));
+        Assert.Equal(0, AutoBacklightService.Classify(95, current: 1));
     }
 
     [Fact]
     public void FlickerAroundABorderDoesNotFlap()
     {
-        var bucket = AutoBacklightService.Classify(14, current: -1);
-        foreach (var lux in new[] { 16.0, 14, 17, 13, 18, 12 })
+        var bucket = AutoBacklightService.Classify(170, current: -1);   // off
+        foreach (var lux in new[] { 150.0, 165, 140, 170, 130, 160 })
             bucket = AutoBacklightService.Classify(lux, bucket);
-        Assert.Equal(1, bucket); // settled in "dim", not bouncing back to "dark"
+        Assert.Equal(1, bucket); // stayed off: never dropped below 100
     }
 
     [Fact]
